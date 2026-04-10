@@ -23,6 +23,7 @@
 - Alarm label.
 - Sound preview.
 - Quick duplicate alarm.
+- Extra mini tasks: `icon_match`, `position_tap`, `order_tap`, `count_objects`.
 
 ## Not in MVP
 

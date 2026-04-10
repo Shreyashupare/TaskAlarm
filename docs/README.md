@@ -13,6 +13,7 @@ Help users wake up by requiring small brain tasks before alarm stop is allowed. 
 ## Folder structure
 
 - `product/` - what the app does (purpose, flow, screens, features).
+- `specs/` - detailed technical documentation for implementation.
 - `standards/` - coding and testing standards.
 - `process/` - git process and team workflow.
 

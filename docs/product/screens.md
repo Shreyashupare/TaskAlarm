@@ -14,9 +14,7 @@
 - Optional label.
 - Advanced 
     - Vibration toggle.
-    - Snooze policy 
-        - How many times to snooze before stopping.
-        - Interval to ring after first alarm.
+    - Snooze policy (MVP): allowed only after required tasks are completed.
 - Save action.
 
 ## Ringing Screen
@@ -37,5 +35,5 @@
 
 - Default task count. Task count selector (`3` to `10`).
 - Task type selector (`math`, `color`, `shape`, `mixed`).
-- Snooze policy.
+- Snooze policy (`afterCompletionOnly` in MVP).
 - Theme mode (`light`, `dark`, `system`).

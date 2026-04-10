@@ -13,6 +13,7 @@ People set alarms but often snooze or stop quickly while half-awake. `TaskAlarm`
 - Alarm does not stop immediately.
 - User solves `x` tasks.
 - Stop button unlocks after completion.
+- Snooze is allowed only after completion (MVP policy).
 - Show a random quote after successful stop.
 - Users are motivated for next goals of the day and no more sleepy.
 
@@ -32,6 +33,13 @@ People set alarms but often snooze or stop quickly while half-awake. `TaskAlarm`
 - Task types: math, color, shape, mixed (random).
 - Task count range: `3` to `10` (default `4`).
 - Quote display after alarm stop.
+
+## Optional task extensions (post-MVP or V1.1)
+
+- Icon match.
+- Position tap.
+- Order tap.
+- Count objects.
 
 ## Future-ready but simple
 

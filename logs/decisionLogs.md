@@ -15,6 +15,6 @@ Track important decisions in lightweight format.
 
 ### 2026-04-09 - Purpose-first MVP
 
-- Decision: Keep MVP minimal. Set up an Alarm + Stop after task complition.
+- Decision: Keep MVP minimal. Set up an alarm with stop unlocked only after task completion.
 - Why: Solves core user problem without feature overload.
 - Follow-up: Add advanced gamification after MVP.
