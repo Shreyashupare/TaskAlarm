@@ -48,8 +48,8 @@ Simple checklist to track what is done and what is pending.
 
 ## Development checklist (start implementation)
 
-- [ ] Create project skeleton folders from `docs/specs/01-architecture.md`.
-- [ ] Install baseline dependencies from `docs/specs/02-packages-and-setup.md`.
+- [x] Create project skeleton folders from `docs/specs/01-architecture.md`.
+- [x] Install baseline dependencies from `docs/specs/02-packages-and-setup.md`.
 - [ ] Configure navigation shell (root stack + bottom tabs).
 - [ ] Set up SQLite schema and repositories (`alarms`, `settings`, `quotes`).
 - [ ] Implement Zustand stores (`useAlarmStore`, `useSettingsStore`, `useRingingStore`).
