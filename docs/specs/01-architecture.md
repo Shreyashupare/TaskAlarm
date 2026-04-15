@@ -87,12 +87,16 @@ src/
     tokens.ts
     lightTheme.ts
     darkTheme.ts
+    ThemeContext.tsx
     index.ts
-  types/
-    alarm.ts
-    task.ts
-    settings.ts
-    quote.ts
+  constants/
+    AppConstants.ts       # Global constants (task counts, defaults)
+    defaultQuotes.ts      # Default quote data
+    types/                # Type definitions
+      index.ts
+      alarm.ts
+      settings.ts
+      quote.ts
   utils/
     dateTime.ts
     validators.ts

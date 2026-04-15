@@ -33,30 +33,47 @@ Simple checklist to track what is done and what is pending.
 
 ## Task engine
 
-- [ ] Math task generator
-- [ ] Color task generator
-- [ ] Shape task generator
-- [ ] Mixed mode selector
-- [ ] Task progress and unlock logic
-- [ ] Use AI for random task ?
+- [x] Math task generator (+, -, *)
+- [x] Color task generator (6 colors with text labels)
+- [x] Shape task generator (5 shapes)
+- [x] Mixed mode selector
+- [x] Task progress and unlock logic
+- [x] Task generation failure fallback (retry + math fallback)
+- [ ] Use AI for random task ? (Post-MVP)
 
 ## Platform checks
 
-- [ ] Android exact alarm permission flow
-- [ ] iOS sound limitations handling
-- [ ] Basic background/foreground behavior testing
+- [x] Android exact alarm permission flow - checkExactAlarmPermission() + openExactAlarmSettings()
+- [x] Basic background/foreground behavior testing - Foreground event handler in App.tsx
+- [ ] iOS sound limitations handling (Post-MVP)
 
 ## Development checklist (start implementation)
 
 - [x] Create project skeleton folders from `docs/specs/01-architecture.md`.
 - [x] Install baseline dependencies from `docs/specs/02-packages-and-setup.md`.
-- [ ] Configure navigation shell (root stack + bottom tabs).
-- [ ] Set up SQLite schema and repositories (`alarms`, `settings`, `quotes`).
-- [ ] Implement Zustand stores (`useAlarmStore`, `useSettingsStore`, `useRingingStore`).
-- [ ] Implement theme tokens/provider and `useThemeTokens()` hook.
-- [ ] Build reusable UI primitives (`AppButton`, `AppSwitch`, `FormSection`, `TopHeader`).
-- [ ] Build Alarm List + Create/Edit screens.
-- [ ] Implement scheduler service + reconcile-on-launch flow.
-- [ ] Build ringing session with task gating and audio loop.
-- [ ] Build quote-after-stop screen with fallback quote behavior.
-- [ ] Run MVP scenario checks from `docs/specs/06-scenarios-and-edge-cases.md`.
+- [x] Configure navigation shell (root stack + bottom tabs).
+- [x] Set up SQLite schema and repositories (`alarms`, `settings`, `quotes`).
+- [x] Implement Zustand stores (`useAlarmStore`, `useSettingsStore`, `useRingingStore`).
+- [x] Implement theme tokens/provider and `useThemeTokens()` hook.
+- [x] Build reusable UI primitives (`AppButton`, `AppSwitch`, `FormSection`, `TopHeader`).
+- [x] Implement common app routing and navigation logic.
+- [x] Build Alarm List + Create/Edit screens.
+- [x] Implement scheduler service + reconcile-on-launch flow.
+- [x] Build ringing session with task gating and audio loop.
+- [x] Build quote-after-stop screen with fallback quote behavior (Good Morning/Good Evening).
+- [x] Settings screen with proper settings options.
+- [x] Run MVP scenario checks from `docs/specs/06-scenarios-and-edge-cases.md`.
+
+## MVP Scenario Checklist Status
+
+- [x] Background trigger works - Notifee foreground event handler in App.tsx
+- [x] Lock-screen trigger flow works - Full-screen action in notification config
+- [x] App-killed behavior verified - Background event handler in alarmScheduler.ts
+- [x] Permission denied path handled - checkExactAlarmPermission() + openExactAlarmSettings()
+- [x] Task fallback works - safeGenerateTask() with retry + math fallback
+- [x] Quote fallback works - Greeting fallback in QuoteScreen
+
+## Post-MVP / Platform
+- [ ] Reboot restore (Android receiver)
+- [ ] Custom sound fallback
+- [ ] iOS specific implementations

@@ -17,7 +17,7 @@ This file is updated at commit time only.
 
 - What was done: Initialized Expo TypeScript app baseline and added Husky pre-commit checks.
 - Files/areas changed: `App.tsx`, `app.json`, `babel.config.js`, `tsconfig.json`, `package.json`, `.husky/pre-commit`, `docs/`, `logs/`, `meta/ai/`.
-- Commit id: `<to-be-added>`
+- Commit id: `6ae617d`
 - Notes: Pre-commit now runs `typecheck` and `test:ci`; changelog format updated to include date and time.
 
 ### 2026-04-10 - spec-docs

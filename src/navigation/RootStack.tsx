@@ -1,0 +1,56 @@
+import { NavigationContainer, type NavigatorScreenParams } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+
+import MainTabs, { type MainTabParamList } from "./MainTabs";
+import AlarmFormScreen from "../screens/alarms/AlarmFormScreen/AlarmFormScreen";
+import AlarmRingingScreen from "../screens/ringing/AlarmRingingScreen/AlarmRingingScreen";
+import QuoteScreen from "../screens/ringing/QuoteScreen/QuoteScreen";
+
+export type RootStackParamList = {
+  MainTabs: NavigatorScreenParams<MainTabParamList>;
+  AlarmForm: { alarmId?: string };
+  AlarmRinging: { alarmId: string };
+  Quote: { alarmId: string };
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+import { forwardRef } from "react";
+import type { NavigationContainerRef } from "@react-navigation/native";
+
+interface RootStackProps {
+  navigationRef?: React.RefObject<NavigationContainerRef<RootStackParamList>>;
+}
+
+function RootStackComponent({ navigationRef }: RootStackProps, ref: React.ForwardedRef<NavigationContainerRef<RootStackParamList>>) {
+  return (
+    <NavigationContainer ref={ref || navigationRef}>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          animation: "slide_from_right",
+        }}
+      >
+        <Stack.Screen name="MainTabs" component={MainTabs} />
+        <Stack.Screen
+          name="AlarmForm"
+          component={AlarmFormScreen}
+          options={{ headerShown: true, headerTitle: "" }}
+        />
+        <Stack.Screen
+          name="AlarmRinging"
+          component={AlarmRingingScreen}
+          options={{ animation: "fade" }}
+        />
+        <Stack.Screen
+          name="Quote"
+          component={QuoteScreen}
+          options={{ animation: "fade" }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+const RootStack = forwardRef(RootStackComponent);
+export default RootStack;
