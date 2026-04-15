@@ -49,7 +49,8 @@ function generateColorTask(index: number): Task {
     { name: "Orange", hex: "#FFA500" },
   ];
   const targetColor = colors[Math.floor(Math.random() * colors.length)];
-  const options = colors.map(c => c.name).sort(() => Math.random() - 0.5);
+  const shuffledColors = [...colors].sort(() => Math.random() - 0.5);
+  const options = shuffledColors.map(c => c.name);
 
   return {
     id: `color_${index}_${Date.now()}`,
@@ -57,20 +58,28 @@ function generateColorTask(index: number): Task {
     question: `Tap the ${targetColor.name} color`,
     answer: targetColor.name,
     options,
+    visualData: shuffledColors.map(c => ({ type: "color" as const, color: c.hex })),
   };
 }
 
 function generateShapeTask(index: number): Task {
-  const shapes = ["Circle", "Square", "Triangle", "Star", "Heart"];
+  const shapes = [
+    { name: "Circle", type: "circle" as const },
+    { name: "Square", type: "square" as const },
+    { name: "Triangle", type: "triangle" as const },
+    { name: "Star", type: "star" as const },
+  ];
   const targetShape = shapes[Math.floor(Math.random() * shapes.length)];
-  const options = [...shapes].sort(() => Math.random() - 0.5);
+  const shuffledShapes = [...shapes].sort(() => Math.random() - 0.5);
+  const options = shuffledShapes.map(s => s.name);
 
   return {
     id: `shape_${index}_${Date.now()}`,
     type: "shape",
-    question: `Select: ${targetShape}`,
-    answer: targetShape,
+    question: `Select: ${targetShape.name}`,
+    answer: targetShape.name,
     options,
+    visualData: shuffledShapes.map(s => ({ type: "shape" as const, shape: s.type })),
   };
 }
 
@@ -124,12 +133,30 @@ function mapTaskType(alarmTaskType: AlarmTaskType): TaskType {
   }
 }
 
-export function generateTasks(count: number, alarmTaskType: AlarmTaskType): Task[] {
+function getEffectiveTaskTypes(taskTypes: AlarmTaskType[]): TaskType[] {
+  const allTypes: TaskType[] = ["math", "color", "shape"];
+
+  // If mixed is included, use all types
+  if (taskTypes.includes("mixed")) {
+    return allTypes;
+  }
+
+  // Filter to only supported types, fallback to math if none
+  const effective = taskTypes.filter(t => allTypes.includes(t as TaskType)) as TaskType[];
+  return effective.length > 0 ? effective : ["math"];
+}
+
+export function generateTasks(count: number, alarmTaskTypes: AlarmTaskType | AlarmTaskType[]): Task[] {
   const tasks: Task[] = [];
-  const mappedType = mapTaskType(alarmTaskType);
+
+  // Normalize to array
+  const typesArray = Array.isArray(alarmTaskTypes) ? alarmTaskTypes : [alarmTaskTypes];
+  const effectiveTypes = getEffectiveTaskTypes(typesArray);
 
   for (let i = 0; i < count; i++) {
-    tasks.push(safeGenerateTask(mappedType, i));
+    // Randomly select from effective types
+    const selectedType = effectiveTypes[Math.floor(Math.random() * effectiveTypes.length)];
+    tasks.push(safeGenerateTask(selectedType, i));
   }
 
   return tasks;

@@ -27,11 +27,4 @@ export const styles = StyleSheet.create({
   label: {
     fontSize: 13,
   },
-  actions: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  iconBtn: {
-    padding: 4,
-  },
 });

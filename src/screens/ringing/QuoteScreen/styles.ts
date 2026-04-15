@@ -5,6 +5,13 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#1a1a2e",
   },
+  backButton: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+  },
   content: {
     flex: 1,
     justifyContent: "center",

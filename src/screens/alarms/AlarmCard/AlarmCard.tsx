@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useThemeTokens } from "../../../theme";
+import { useSettingsStore } from "../../../stores/useSettingsStore";
 import { AppSwitch } from "../../../components/ui";
 import type { Alarm } from "../../../constants/types";
 import { formatTime, formatWeekdays } from "./helpers/utils";
@@ -15,9 +15,14 @@ type AlarmCardProps = {
 
 export function AlarmCard({ alarm, onToggle, onEdit, onDelete }: AlarmCardProps) {
   const t = useThemeTokens();
+  const { timeFormat } = useSettingsStore();
+  const use24Hour = timeFormat === "24h";
 
   return (
-    <View
+    <TouchableOpacity
+      onPress={onEdit}
+      onLongPress={onDelete}
+      delayLongPress={500}
       style={[
         styles.card,
         {
@@ -28,9 +33,11 @@ export function AlarmCard({ alarm, onToggle, onEdit, onDelete }: AlarmCardProps)
     >
       <View style={styles.cardRow}>
         <Text style={[styles.time, { color: t.text.primary }]}>
-          {formatTime(alarm.time)}
+          {formatTime(alarm.time, use24Hour)}
         </Text>
-        <AppSwitch value={alarm.enabled} onValueChange={onToggle} />
+        <TouchableOpacity onPress={(e) => e.stopPropagation()} activeOpacity={1}>
+          <AppSwitch value={alarm.enabled} onValueChange={onToggle} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.cardRow}>
@@ -42,24 +49,14 @@ export function AlarmCard({ alarm, onToggle, onEdit, onDelete }: AlarmCardProps)
         </Text>
       </View>
 
-      <View style={styles.cardRow}>
-        {alarm.label ? (
+      {alarm.label && (
+        <View style={styles.cardRow}>
           <Text style={[styles.label, { color: t.text.secondary }]}>
             {alarm.label}
           </Text>
-        ) : (
-          <View />
-        )}
-        <View style={styles.actions}>
-          <TouchableOpacity onPress={onEdit} style={styles.iconBtn}>
-            <Ionicons name="create-outline" size={20} color={t.icon.secondary} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onDelete} style={styles.iconBtn}>
-            <Ionicons name="trash-outline" size={20} color={t.state.error} />
-          </TouchableOpacity>
         </View>
-      </View>
-    </View>
+      )}
+    </TouchableOpacity>
   );
 }
 

@@ -10,6 +10,20 @@ export const styles = StyleSheet.create({
     paddingTop: 40,
     paddingBottom: 20,
   },
+  errorBanner: {
+    backgroundColor: "#f44336",
+    marginHorizontal: 20,
+    marginTop: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  errorBannerText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
   time: {
     fontSize: 64,
     fontWeight: "200",
@@ -79,6 +93,27 @@ export const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "600",
+  },
+  colorBox: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    borderWidth: 3,
+    borderColor: "rgba(255,255,255,0.3)",
+  },
+  shapeContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderWidth: 3,
+    borderColor: "rgba(255,255,255,0.3)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  shapeSvg: {
+    width: 50,
+    height: 50,
   },
   input: {
     borderWidth: 2,

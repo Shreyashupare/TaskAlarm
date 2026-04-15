@@ -31,11 +31,25 @@ export default function AlarmListScreen() {
     loadAlarms();
   }, [loadAlarms]);
 
+  // Debug: log alarms count
+  useEffect(() => {
+    console.log("AlarmListScreen alarms count:", alarms.length);
+  }, [alarms]);
+
   const handleEdit = (alarm: Alarm) => {
     navigation.navigate("AlarmForm", { alarmId: alarm.id });
   };
 
   const handleToggle = async (alarm: Alarm) => {
+    const newEnabled = !alarm.enabled;
+
+    // Schedule or cancel based on new state
+    if (newEnabled) {
+      await scheduleAlarm({ ...alarm, enabled: newEnabled });
+    } else {
+      await cancelAlarm(alarm.id);
+    }
+
     await toggleAlarm(alarm.id);
   };
 

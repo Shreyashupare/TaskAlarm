@@ -21,8 +21,11 @@ export const useAlarmStore = create<AlarmState & AlarmActions>((set, get) => ({
   addAlarm: async (alarm: Alarm) => {
     try {
       await alarmRepository.insertAlarm(alarm);
+      console.log("Alarm inserted:", alarm.id);
       await get().loadAlarms();
+      console.log("Alarms loaded after insert, count:", get().alarms.length);
     } catch (err) {
+      console.error("Failed to add alarm:", err);
       set({ error: err instanceof Error ? err.message : "Failed to add alarm" });
     }
   },

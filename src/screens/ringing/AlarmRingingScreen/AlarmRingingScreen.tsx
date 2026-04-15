@@ -6,10 +6,12 @@ import {
   TouchableOpacity,
   Alert,
   BackHandler,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useAlarmStore } from "../../../stores/useAlarmStore";
+import { useSettingsStore } from "../../../stores/useSettingsStore";
 
 import type { RootStackParamList } from "../../../navigation/RootStack";
 import { useRingingStore } from "../../../stores/useRingingStore";
@@ -18,6 +20,7 @@ import { generateTasks, validateAnswer } from "../../../services/tasks/taskEngin
 import type { Task } from "../../../stores/types";
 import { styles } from "./styles";
 import { formatTime } from "./helpers/utils";
+import { renderShape } from "./helpers/shapes";
 
 type Props = NativeStackScreenProps<RootStackParamList, "AlarmRinging">;
 
@@ -27,6 +30,8 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [userAnswer, setUserAnswer] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const { timeFormat } = useSettingsStore();
+  const use24Hour = timeFormat === "24h";
 
   const {
     alarmLabel,
@@ -45,12 +50,14 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
   // Start ringing on mount
   useEffect(() => {
     const alarm = useAlarmStore.getState().alarms.find((a) => a.id === alarmId);
-    const taskCount = alarm?.taskCount ?? 4;
-    const taskType = alarm?.taskType ?? "math";
+    const settings = useSettingsStore.getState();
+
+    const taskCount = alarm?.taskCount ?? settings.defaultTaskCount ?? 4;
+    const taskTypes = settings.defaultTaskTypes ?? ["math"];
 
     startRinging(alarmId, alarm?.label, taskCount);
 
-    const tasks = generateTasks(taskCount, taskType);
+    const tasks = generateTasks(taskCount, taskTypes);
     useRingingStore.setState({ tasks });
 
     startLoop();
@@ -78,7 +85,10 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
       setUserAnswer("");
       setError(null);
     } else {
+      Keyboard.dismiss();
       setError("Wrong answer, try again");
+      // Clear error after 2 seconds
+      setTimeout(() => setError(null), 2000);
     }
   }, [currentTask, userAnswer, completeCurrentTask]);
 
@@ -90,6 +100,8 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
       setError(null);
     } else {
       setError("Wrong answer, try again");
+      // Clear error after 2 seconds
+      setTimeout(() => setError(null), 2000);
     }
   }, [currentTask, completeCurrentTask]);
 
@@ -132,27 +144,55 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
           >
             <Text style={styles.submitText}>Submit</Text>
           </TouchableOpacity>
-          {error && <Text style={styles.errorText}>{error}</Text>}
         </View>
       );
     }
 
-    // Color or shape task with options
+    // Color or shape task with visual options
+    const isColorTask = currentTask.type === "color";
+    const isShapeTask = currentTask.type === "shape";
+
     return (
       <View style={styles.taskCard}>
         <Text style={styles.taskQuestion}>{currentTask.question}</Text>
         <View style={styles.optionsGrid}>
-          {currentTask.options?.map((option) => (
-            <TouchableOpacity
-              key={option}
-              style={styles.optionButton}
-              onPress={() => handleOptionPress(option)}
-            >
-              <Text style={styles.optionText}>{option}</Text>
-            </TouchableOpacity>
-          ))}
+          {currentTask.options?.map((option, index) => {
+            const visual = currentTask.visualData?.[index];
+
+            if (isColorTask && visual?.type === "color") {
+              return (
+                <TouchableOpacity
+                  key={option}
+                  style={[styles.colorBox, { backgroundColor: visual.color }]}
+                  onPress={() => handleOptionPress(option)}
+                />
+              );
+            }
+
+            if (isShapeTask && visual?.type === "shape") {
+              return (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.shapeContainer}
+                  onPress={() => handleOptionPress(option)}
+                >
+                  {renderShape(visual.shape, styles.shapeSvg)}
+                </TouchableOpacity>
+              );
+            }
+
+            // Fallback to text button
+            return (
+              <TouchableOpacity
+                key={option}
+                style={styles.optionButton}
+                onPress={() => handleOptionPress(option)}
+              >
+                <Text style={styles.optionText}>{option}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
-        {error && <Text style={styles.errorText}>{error}</Text>}
       </View>
     );
   };
@@ -161,9 +201,16 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
     <SafeAreaView style={styles.container}>
       {/* Header with time */}
       <View style={styles.header}>
-        <Text style={styles.time}>{formatTime(currentTime)}</Text>
+        <Text style={styles.time}>{formatTime(currentTime, use24Hour)}</Text>
         {alarmLabel && <Text style={styles.label}>{alarmLabel}</Text>}
       </View>
+
+      {/* Error Banner */}
+      {error && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorBannerText}>{error}</Text>
+        </View>
+      )}
 
       {/* Progress */}
       <View style={styles.progressContainer}>

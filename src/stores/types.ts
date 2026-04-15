@@ -24,17 +24,29 @@ export type SettingsState = AppSettings & {
 export type SettingsActions = {
   loadSettings: () => Promise<void>;
   updateTheme: (theme: ThemePreference) => Promise<void>;
+  updateTimeFormat: (format: "12h" | "24h") => Promise<void>;
   updateDefaultTaskCount: (count: number) => Promise<void>;
-  updateDefaultTaskType: (type: AlarmTaskType) => Promise<void>;
+  updateDefaultTaskTypes: (types: AlarmTaskType[]) => Promise<void>;
+  updateSnooze: (interval: number, maxCount: number) => Promise<void>;
+  updateRingtone: (type: "default" | "custom", name: string, uri?: string) => Promise<void>;
 };
 
 // Ringing Store Types
+export type TaskVisualData = {
+  type: "color";
+  color: string; // hex color
+} | {
+  type: "shape";
+  shape: "circle" | "square" | "triangle" | "star";
+};
+
 export type Task = {
   id: string;
   type: "math" | "color" | "shape";
   question: string;
   answer: string | number;
   options?: string[];
+  visualData?: TaskVisualData[]; // For color/shape tasks - matches options index
 };
 
 export type RingingState = {

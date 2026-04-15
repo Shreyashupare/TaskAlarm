@@ -13,12 +13,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useThemeTokens } from "../../../theme";
 import { useSettingsStore } from "../../../stores/useSettingsStore";
 import { TopHeader } from "../../../components/ui";
-import type { ThemePreference, AlarmTaskType } from "../../../constants/types";
+import type { ThemePreference, AlarmTaskType, TimeFormat } from "../../../constants/types";
 import { MIN_TASK_COUNT, MAX_TASK_COUNT } from "../../../constants/AppConstants";
 import { styles } from "./styles";
-import { THEME_OPTIONS, TASK_TYPE_OPTIONS, SNOOZE_OPTIONS } from "./helpers/constants";
+import { THEME_OPTIONS, TASK_TYPE_OPTIONS, SNOOZE_OPTIONS, TIME_FORMAT_OPTIONS } from "./helpers/constants";
 
-type ModalType = "theme" | "taskType" | "snooze" | null;
+type ModalType = "theme" | "timeFormat" | "taskType" | "snooze" | null;
 
 export default function SettingsScreen() {
   const t = useThemeTokens();
@@ -26,15 +26,17 @@ export default function SettingsScreen() {
 
   const {
     theme,
+    timeFormat,
     defaultTaskCount,
-    defaultTaskType,
+    defaultTaskTypes,
     snoozePolicy,
     minTaskCount,
     maxTaskCount,
     loadSettings,
     updateTheme,
+    updateTimeFormat,
     updateDefaultTaskCount,
-    updateDefaultTaskType,
+    updateDefaultTaskTypes,
   } = useSettingsStore();
 
   useEffect(() => {
@@ -58,20 +60,53 @@ export default function SettingsScreen() {
             title: "Theme",
             options: THEME_OPTIONS,
             selected: theme,
+            autoClose: true,
             onSelect: (val: ThemePreference) => updateTheme(val),
+          };
+        case "timeFormat":
+          return {
+            title: "Time Format",
+            options: TIME_FORMAT_OPTIONS,
+            selected: timeFormat,
+            autoClose: true,
+            onSelect: (val: TimeFormat) => updateTimeFormat(val),
           };
         case "taskType":
           return {
-            title: "Default Task Type",
+            title: "Task Types",
             options: TASK_TYPE_OPTIONS,
-            selected: defaultTaskType,
-            onSelect: (val: AlarmTaskType) => updateDefaultTaskType(val),
+            selected: defaultTaskTypes,
+            autoClose: false,
+            onSelect: (val: AlarmTaskType) => {
+              // Get latest value from store to avoid stale closure
+              const current = useSettingsStore.getState().defaultTaskTypes;
+              let updated: AlarmTaskType[];
+
+              if (val === "mixed") {
+                // Mixed is exclusive - toggle it on/off, clearing others
+                updated = current.includes("mixed") ? ["math"] : ["mixed"];
+              } else {
+                // Selecting a specific type - remove mixed if present
+                const withoutMixed = current.filter(t => t !== "mixed");
+
+                if (withoutMixed.includes(val)) {
+                  // Deselecting
+                  updated = withoutMixed.filter(t => t !== val);
+                  if (updated.length === 0) updated = ["math"]; // Keep at least one
+                } else {
+                  // Selecting
+                  updated = [...withoutMixed, val];
+                }
+              }
+              updateDefaultTaskTypes(updated);
+            },
           };
         case "snooze":
           return {
             title: "Snooze Policy",
             options: SNOOZE_OPTIONS,
             selected: snoozePolicy,
+            autoClose: true,
             onSelect: () => {}, // Snooze not implemented yet
           };
         default:
@@ -128,13 +163,17 @@ export default function SettingsScreen() {
                 ]}
                 onPress={() => {
                   config.onSelect(option.value as never);
-                  setActiveModal(null);
+                  if (config.autoClose) {
+                    setActiveModal(null);
+                  }
                 }}
               >
                 <Text style={[styles.optionLabel, { color: t.text.primary }]}>
                   {option.label}
                 </Text>
-                {config.selected === option.value && (
+                {(Array.isArray(config.selected)
+                  ? config.selected.includes(option.value as AlarmTaskType)
+                  : config.selected === option.value) && (
                   <Ionicons
                     name="checkmark"
                     size={20}
@@ -173,6 +212,26 @@ export default function SettingsScreen() {
               <View style={styles.rowRight}>
                 <Text style={[styles.rowValue, { color: t.text.secondary }]}>
                   {THEME_OPTIONS.find(o => o.value === theme)?.label}
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={t.icon.secondary}
+                  style={{ marginLeft: 4 }}
+                />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.row}
+              onPress={() => setActiveModal("timeFormat")}
+            >
+              <Text style={[styles.rowLabel, { color: t.text.primary }]}>
+                Time Format
+              </Text>
+              <View style={styles.rowRight}>
+                <Text style={[styles.rowValue, { color: t.text.secondary }]}>
+                  {TIME_FORMAT_OPTIONS.find(o => o.value === timeFormat)?.label}
                 </Text>
                 <Ionicons
                   name="chevron-forward"
@@ -244,11 +303,17 @@ export default function SettingsScreen() {
               onPress={() => setActiveModal("taskType")}
             >
               <Text style={[styles.rowLabel, { color: t.text.primary }]}>
-                Default Task Type
+                Task Types
               </Text>
               <View style={styles.rowRight}>
                 <Text style={[styles.rowValue, { color: t.text.secondary }]}>
-                  {TASK_TYPE_OPTIONS.find(o => o.value === defaultTaskType)?.label}
+                  {defaultTaskTypes.length === 0
+                    ? "None"
+                    : defaultTaskTypes.length >= 3 || defaultTaskTypes.includes("mixed")
+                      ? "All Types"
+                      : defaultTaskTypes.map(t =>
+                          TASK_TYPE_OPTIONS.find(o => o.value === t)?.label
+                        ).join(", ")}
                 </Text>
                 <Ionicons
                   name="chevron-forward"

@@ -10,10 +10,15 @@ export const TASK_TYPE_OPTIONS: { value: AlarmTaskType; label: string }[] = [
   { value: "math", label: "Math" },
   { value: "color", label: "Color Match" },
   { value: "shape", label: "Shape Match" },
-  { value: "mixed", label: "Mixed" },
+  { value: "mixed", label: "All Types" },
 ];
 
 export const SNOOZE_OPTIONS: { value: "afterCompletionOnly" | "always"; label: string }[] = [
   { value: "afterCompletionOnly", label: "After completing tasks only" },
   { value: "always", label: "Always allow" },
+];
+
+export const TIME_FORMAT_OPTIONS: { value: "12h" | "24h"; label: string }[] = [
+  { value: "12h", label: "12-hour (AM/PM)" },
+  { value: "24h", label: "24-hour" },
 ];

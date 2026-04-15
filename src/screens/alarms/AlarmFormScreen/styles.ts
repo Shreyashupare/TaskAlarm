@@ -7,6 +7,7 @@ export const styles = StyleSheet.create({
   scroll: {
     flex: 1,
     paddingHorizontal: 16,
+    paddingTop: 2,
   },
   section: {
     borderRadius: 12,
@@ -34,11 +35,27 @@ export const styles = StyleSheet.create({
     fontSize: 48,
     fontWeight: "300",
     fontVariant: ["tabular-nums"],
+    minWidth: 60,
+    textAlign: "center",
   },
   colon: {
     fontSize: 48,
     fontWeight: "300",
     marginHorizontal: 8,
+  },
+  ampmContainer: {
+    marginLeft: 12,
+    justifyContent: "center",
+  },
+  ampmBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: "rgba(0,0,0,0.05)",
+  },
+  ampmText: {
+    fontSize: 24,
+    fontWeight: "600",
   },
   weekdayRow: {
     flexDirection: "row",
@@ -102,6 +119,19 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  rowLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  resetButton: {
+    alignSelf: "flex-start",
+  },
   spacer: {
     height: 100,
   },
@@ -112,6 +142,5 @@ export const styles = StyleSheet.create({
     right: 0,
     padding: 16,
     paddingBottom: 32,
-    backgroundColor: "rgba(255,255,255,0.9)",
   },
 });

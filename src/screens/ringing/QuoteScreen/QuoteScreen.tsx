@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { Ionicons } from "@expo/vector-icons";
 
 import type { RootStackParamList } from "../../../navigation/RootStack";
 import { useRingingStore } from "../../../stores/useRingingStore";
+import { useSettingsStore } from "../../../stores/useSettingsStore";
 import type { Quote } from "../../../constants/types";
 import * as quoteRepository from "../../../data/repositories/quoteRepository";
 import { styles } from "./styles";
@@ -18,6 +20,8 @@ export default function QuoteScreen({ navigation }: Props) {
   const [isLoading, setIsLoading] = useState(true);
 
   const { reset, quote: storeQuote } = useRingingStore();
+  const { timeFormat } = useSettingsStore();
+  const use24Hour = timeFormat === "24h";
 
   useEffect(() => {
     // Update clock
@@ -27,11 +31,16 @@ export default function QuoteScreen({ navigation }: Props) {
 
   useEffect(() => {
     // Load quote - use store quote if available, otherwise fetch new
-    const loadQuote = async () => {
+    const loadQuote = async (retryCount = 0) => {
       setIsLoading(true);
       try {
-        // Seed quotes if empty first
+        // Seed quotes if empty first (with retry)
         await quoteRepository.seedQuotesIfEmpty();
+
+        // Small delay to ensure DB is ready
+        if (retryCount === 0) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
 
         // Use store quote if available
         if (storeQuote) {
@@ -43,6 +52,11 @@ export default function QuoteScreen({ navigation }: Props) {
         }
       } catch (err) {
         console.error("Failed to load quote:", err);
+        // Retry once if initial load fails
+        if (retryCount < 1) {
+          setTimeout(() => loadQuote(retryCount + 1), 500);
+          return;
+        }
         setQuote(null);
       } finally {
         setIsLoading(false);
@@ -61,10 +75,18 @@ export default function QuoteScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Back Button */}
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.navigate("MainTabs", { screen: "Alarms" })}
+      >
+        <Ionicons name="arrow-back" size={28} color="#fff" />
+      </TouchableOpacity>
+
       <View style={styles.content}>
         {/* Greeting and Time */}
         <Text style={styles.greeting}>{greeting}</Text>
-        <Text style={styles.time}>{formatTime(currentTime)}</Text>
+        <Text style={styles.time}>{formatTime(currentTime, use24Hour)}</Text>
 
         {/* Quote or Fallback */}
         <View style={styles.quoteCard}>

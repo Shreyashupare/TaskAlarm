@@ -35,17 +35,17 @@ function RootStackComponent({ navigationRef }: RootStackProps, ref: React.Forwar
         <Stack.Screen
           name="AlarmForm"
           component={AlarmFormScreen}
-          options={{ headerShown: true, headerTitle: "" }}
+          options={{ headerShown: false, gestureEnabled: true }}
         />
         <Stack.Screen
           name="AlarmRinging"
           component={AlarmRingingScreen}
-          options={{ animation: "fade" }}
+          options={{ animation: "fade", gestureEnabled: false }}
         />
         <Stack.Screen
           name="Quote"
           component={QuoteScreen}
-          options={{ animation: "fade" }}
+          options={{ animation: "fade", gestureEnabled: true }}
         />
       </Stack.Navigator>
     </NavigationContainer>
