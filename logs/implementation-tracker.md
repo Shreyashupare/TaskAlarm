@@ -14,12 +14,12 @@ Simple checklist to track what is done and what is pending.
 - [x] Define user flow and screens
 - [x] Define coding and testing standards
 - [x] Create technical documentation
-- [ ] Build alarm list screen
-- [ ] Build create/edit alarm screen
-- [ ] Build alarm scheduling integration
-- [ ] Build ringing screen with task lock
-- [ ] Build optional mini-task templates
-- [ ] Build quote-after-stop flow
+- [x] Build alarm list screen
+- [x] Build create/edit alarm screen
+- [x] Build alarm scheduling integration
+- [x] Build ringing screen with task lock
+- [x] Build optional mini-task templates (Math, Color, Shape)
+- [x] Build quote-after-stop flow
 
 ## Technical docs progress
 
@@ -34,12 +34,26 @@ Simple checklist to track what is done and what is pending.
 ## Task engine
 
 - [x] Math task generator (+, -, *)
-- [x] Color task generator (6 colors with text labels)
-- [x] Shape task generator (5 shapes)
+- [x] Color task generator (6 colors with visual color boxes)
+- [x] Shape task generator (4 shapes with visual render)
 - [x] Mixed mode selector
 - [x] Task progress and unlock logic
 - [x] Task generation failure fallback (retry + math fallback)
-- [ ] Use AI for random task ? (Post-MVP)
+## V2.0 Features
+
+- [x] Create spec `docs/specs/08-version2.0.md` - Reflection Task & Custom Questions
+- [ ] Implement Reflection Task Engine (open-ended questions, always last task)
+- [ ] Implement Custom User Questions screen with CRUD operations
+- [ ] Replace Settings tab with My Questions tab in footer navigation
+
+## Additional Tasks (V2 / Post-MVP)
+
+Details in `docs/product/features.md` and `docs/specs/01-architecture.md`:
+
+- [ ] Additional mini task types: `icon_match`, `position_tap`, `order_tap`, `count_objects`
+- [ ] Sound preview in alarm form
+- [ ] Quick duplicate alarm option
+- [ ] Reboot restore (Android receiver) - Post-MVP
 
 ## Platform checks
 
