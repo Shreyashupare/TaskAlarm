@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StyleSheet } from "react-native";
 import * as Notifications from "expo-notifications";
-import { NavigationContainerRef } from "@react-navigation/native";
+import { createNavigationContainerRef } from "@react-navigation/native";
 
 import RootStack, { RootStackParamList } from "./src/navigation/RootStack";
 import { ThemeProvider } from "./src/theme";
@@ -14,7 +14,7 @@ import { seedQuotesIfEmpty } from "./src/data/repositories/quoteRepository";
 import type { Alarm } from "./src/constants/types";
 
 // Global navigation ref for background events
-export const navigationRef = useRef<NavigationContainerRef<RootStackParamList>>(null);
+export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 function AppContent() {
   const { alarms, loadAlarms } = useAlarmStore();
