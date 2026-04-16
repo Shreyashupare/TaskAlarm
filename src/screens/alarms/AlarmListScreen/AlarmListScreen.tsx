@@ -88,7 +88,7 @@ export default function AlarmListScreen() {
           TaskAlarm
         </Text>
         <TouchableOpacity
-          onPress={() => navigation.navigate("MainTabs", { screen: "Settings" })}
+          onPress={() => navigation.navigate("Settings")}
         >
           <Ionicons name="settings-outline" size={24} color={t.icon.primary} />
         </TouchableOpacity>

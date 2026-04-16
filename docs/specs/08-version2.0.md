@@ -1,10 +1,18 @@
-# Version 2.0 Spec - Reflection Task & Custom Questions
+# Version 2.0 Spec - Extended Task Engine
 
 ## Overview
 
-Extend the TaskAlarm task engine with two new features:
-1. **Reflection Task** - Open-ended questions with no right/wrong answer
+Extend the TaskAlarm task engine with:
+1. **Reflection Task** - Open-ended questions with no right/wrong answer (always last task)
 2. **Custom User Questions** - Users can create their own MCQ questions
+3. **Four New Mini Tasks** - icon_match, position_tap, order_tap, count_objects
+4. **Reflection History** - View past reflections in Settings
+
+## Navigation Structure
+
+- **2 Tabs**: Alarms | My Questions
+- **Settings**: Accessible via top-right corner gear icon
+- **Reflections**: New sub-tab inside Settings
 
 ---
 
@@ -30,17 +38,35 @@ A new task type `reflection` that asks users open-ended questions. Any non-empty
 
 ```typescript
 // 1. Add to AlarmTaskType in src/constants/types/alarm.ts
-type AlarmTaskType = "math" | "color" | "shape" | "mixed" | "reflection";
+type AlarmTaskType = 
+  | "math" 
+  | "color" 
+  | "shape" 
+  | "mixed" 
+  | "icon_match" 
+  | "position_tap" 
+  | "order_tap" 
+  | "count_objects" 
+  | "reflection" 
+  | "custom";
 
 // 2. Add to Task type in src/stores/types.ts
 export type Task = {
   id: string;
-  type: "math" | "color" | "shape" | "reflection";
+  type: 
+    | "math" 
+    | "color" 
+    | "shape" 
+    | "icon_match" 
+    | "position_tap" 
+    | "order_tap" 
+    | "count_objects" 
+    | "reflection" 
+    | "custom";
   question: string;
   answer: string | number;
   options?: string[];
   visualData?: TaskVisualData[];
-  // For reflection: no answer validation needed
 };
 
 // 3. Create generateReflectionTask() in src/services/tasks/taskEngine.ts
@@ -64,21 +90,43 @@ function generateReflectionTask(index: number): Task {
 
 // 4. Modify generateTasks() to add reflection as LAST task
 export function generateTasks(
-  count: number, 
+  count: number,
   taskTypes: AlarmTaskType[],
-  includeReflection: boolean = false
+  includeReflection: boolean = false,
+  includeCustomQuestions: boolean = false,
+  customQuestions: CustomQuestion[] = []
 ): Task[] {
   const tasks: Task[] = [];
-  const regularCount = includeReflection ? count - 1 : count;
+  let regularCount = count;
   
-  // Generate regular tasks (math/color/shape/mixed)
+  // Reserve 1 slot for reflection if enabled
+  if (includeReflection) {
+    regularCount -= 1;
+  }
+  
+  // Reserve up to 2 slots for custom questions if enabled and available
+  let customCount = 0;
+  if (includeCustomQuestions && customQuestions.length > 0) {
+    customCount = Math.min(2, customQuestions.length);
+    regularCount -= customCount;
+  }
+  
+  // Generate regular tasks (math/color/shape/icon_match/position_tap/order_tap/count_objects)
   for (let i = 0; i < regularCount; i++) {
     tasks.push(safeGenerateTask(getRandomTaskType(taskTypes), i));
   }
   
+  // Add custom questions (shuffled, max 2)
+  if (customCount > 0) {
+    const shuffled = [...customQuestions].sort(() => Math.random() - 0.5);
+    for (let i = 0; i < customCount; i++) {
+      tasks.push(generateCustomQuestionTask(shuffled[i], i));
+    }
+  }
+  
   // Add reflection as last task if enabled
   if (includeReflection) {
-    tasks.push(generateReflectionTask(regularCount));
+    tasks.push(generateReflectionTask(regularCount + customCount));
   }
   
   return tasks;
@@ -132,13 +180,26 @@ Add to `src/constants/types/settings.ts`:
 ```typescript
 type AppSettings = {
   // ... existing settings
-  enableReflectionTask: boolean; // default: true
+  enableReflection: boolean; // default: true
+  enableCustomQuestions: boolean; // default: true
 };
 ```
 
-Add toggle in Settings screen to enable/disable reflection tasks.
+**Global Task Type Settings (in Settings Screen):**
+Multi-select checkboxes for regular task types:
+- [x] math
+- [x] color  
+- [x] shape
+- [ ] icon_match
+- [ ] position_tap
+- [ ] order_tap
+- [ ] count_objects
 
-### 1.6 Storage (Optional Enhancement)
+Separate toggles:
+- [x] Include Reflection (always appears last if enabled)
+- [x] Include My Questions (if user has custom questions count > 0)
+
+### 1.6 Reflection Storage
 
 Create `reflections` table:
 
@@ -153,14 +214,194 @@ CREATE TABLE IF NOT EXISTS reflections (
 );
 ```
 
+### 1.7 Reflections Screen (Inside Settings)
+
+New screen accessible from Settings: **"Your Reflection Journey"**
+
+**UI:**
+- List of past reflections (last 30 days)
+- Each item: Date, Question preview (truncated), Response preview
+- Tap to expand full reflection
+- Group by week/month
+- Empty state: "Start your morning reflections to see your journey here"
+
+**Repository:**
+```typescript
+// src/data/repositories/reflectionRepository.ts
+export async function saveReflection(alarmId: string, question: string, response: string): Promise<void>
+export async function getRecentReflections(limit: number): Promise<Reflection[]>
+export async function getReflectionsByDateRange(start: number, end: number): Promise<Reflection[]>
+```
+
 ---
 
-## 2. Custom User Questions
+## 2. Four New Mini Task Types
 
-### 2.1 Concept
+### 2.1 icon_match
+Find and tap matching icons from a grid.
+
+**Generator:**
+```typescript
+function generateIconMatchTask(index: number): Task {
+  const icons = [
+    { name: "Coffee", symbol: "☕" },
+    { name: "Phone", symbol: "📱" },
+    { name: "Car", symbol: "🚗" },
+    { name: "Book", symbol: "📚" },
+    { name: "Star", symbol: "⭐" },
+    { name: "Heart", symbol: "❤️" },
+  ];
+  
+  const target = icons[Math.floor(Math.random() * icons.length)];
+  const matches = Math.floor(Math.random() * 2) + 2; // 2-3 matches
+  const distractors = 9 - matches;
+  
+  // Build grid: matches + distractors
+  const gridItems = Array(matches).fill(target)
+    .concat(Array(distractors).fill(null).map(() => 
+      icons[Math.floor(Math.random() * icons.length)]
+    ));
+  
+  // Shuffle
+  const shuffled = gridItems.sort(() => Math.random() - 0.5);
+  
+  return {
+    id: `icon_${index}_${Date.now()}`,
+    type: "icon_match",
+    question: `Find all ${target.name} icons`,
+    answer: target.name,
+    visualData: shuffled.map(item => ({ type: "icon", icon: item.symbol, name: item.name })),
+  };
+}
+```
+
+**UI:** 3x3 grid of icons. User taps to select, tap again to deselect. Submit when confident.
+
+### 2.2 position_tap
+Tap item at specific position.
+
+**Generator:**
+```typescript
+function generatePositionTapTask(index: number): Task {
+  const positions = ["top-left", "top-right", "bottom-left", "bottom-right", "center"];
+  const colors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF"];
+  
+  const targetPos = positions[Math.floor(Math.random() * positions.length)];
+  const targetColor = colors[Math.floor(Math.random() * colors.length)];
+  
+  // Build 2x2 or 3x3 grid with target at position
+  const is3x3 = Math.random() > 0.5;
+  const gridSize = is3x3 ? 9 : 4;
+  const targetIndex = is3x3 
+    ? [0, 2, 4, 6, 8][Math.floor(Math.random() * 5)] // corners + center
+    : [0, 1, 2, 3][Math.floor(Math.random() * 4)];
+  
+  const visualData = Array(gridSize).fill(null).map((_, i) => ({
+    type: "position" as const,
+    color: i === targetIndex ? targetColor : colors[Math.floor(Math.random() * colors.length)],
+    isTarget: i === targetIndex,
+  }));
+  
+  return {
+    id: `position_${index}_${Date.now()}`,
+    type: "position_tap",
+    question: `Tap the ${targetColor === "#FF0000" ? "RED" : targetColor === "#00FF00" ? "GREEN" : targetColor === "#0000FF" ? "BLUE" : targetColor === "#FFFF00" ? "YELLOW" : "PURPLE"} box`,
+    answer: targetIndex,
+    visualData,
+  };
+}
+```
+
+**UI:** 2x2 or 3x3 colored boxes. User taps the box matching the color in question.
+
+### 2.3 order_tap
+Tap items in sequence (1-2-3).
+
+**Generator:**
+```typescript
+function generateOrderTapTask(index: number): Task {
+  const sequenceLength = Math.floor(Math.random() * 2) + 3; // 3-4 items
+  const shapes = ["circle", "square", "triangle", "star"];
+  
+  // Generate numbered items
+  const items = Array(sequenceLength).fill(null).map((_, i) => ({
+    number: i + 1,
+    shape: shapes[Math.floor(Math.random() * shapes.length)],
+    color: ["#FF0000", "#00FF00", "#0000FF"][Math.floor(Math.random() * 3)],
+  }));
+  
+  // Shuffle for display
+  const displayItems = [...items].sort(() => Math.random() - 0.5);
+  
+  return {
+    id: `order_${index}_${Date.now()}`,
+    type: "order_tap",
+    question: `Tap in order: 1, 2, 3${sequenceLength === 4 ? ", 4" : ""}`,
+    answer: "completed", // Handled by tracking tap sequence
+    visualData: displayItems.map(item => ({
+      type: "ordered_item",
+      number: item.number,
+      shape: item.shape,
+      color: item.color,
+    })),
+  };
+}
+```
+
+**UI:** Scattered shapes with numbers. User taps 1 → 2 → 3 (in that order). Wrong order shows error.
+
+### 2.4 count_objects
+Count objects and enter number.
+
+**Generator:**
+```typescript
+function generateCountObjectsTask(index: number): Task {
+  const shapes = ["circle", "square", "triangle"];
+  const colors = ["red", "blue", "green", "yellow"];
+  
+  const targetShape = shapes[Math.floor(Math.random() * shapes.length)];
+  const targetColor = colors[Math.floor(Math.random() * colors.length)];
+  
+  const targetCount = Math.floor(Math.random() * 5) + 3; // 3-7
+  const distractorCount = Math.floor(Math.random() * 5) + 2; // 2-6
+  
+  // Generate visual data
+  const targets = Array(targetCount).fill(null).map(() => ({
+    type: "count_item" as const,
+    shape: targetShape,
+    color: targetColor,
+    isTarget: true,
+  }));
+  
+  const distractors = Array(distractorCount).fill(null).map(() => ({
+    type: "count_item" as const,
+    shape: shapes[Math.floor(Math.random() * shapes.length)],
+    color: colors[Math.floor(Math.random() * colors.length)],
+    isTarget: false,
+  }));
+  
+  const allItems = [...targets, ...distractors].sort(() => Math.random() - 0.5);
+  
+  return {
+    id: `count_${index}_${Date.now()}`,
+    type: "count_objects",
+    question: `How many ${targetColor} ${targetShape}s?`,
+    answer: targetCount,
+    visualData: allItems,
+  };
+}
+```
+
+**UI:** Scattered colored shapes. Text input for number entry. Submit button.
+
+---
+
+## 3. Custom User Questions (My Questions)
+
+### 3.1 Concept
 Allow users to create their own multiple-choice questions with custom options and correct answers.
 
-### 2.2 Requirements
+### 3.2 Requirements
 
 - UI: New "My Questions" screen accessible from bottom navigation
 - Each question has:
@@ -173,15 +414,15 @@ Allow users to create their own multiple-choice questions with custom options an
 - Limits: Max 10 custom questions, max 4 options per question
 - Validation: All fields required, distinct option values
 
-### 2.3 Data Model
+### 3.3 Data Model
 
 ```typescript
 // src/constants/types/settings.ts
 type CustomQuestion = {
   id: string;
-  question: string;        // max 120 chars
-  options: string[];     // 2-4 items, max 30 chars each
-  correctAnswer: string; // must be one of options
+  question: string;        // max 80 chars (display-friendly)
+  options: string[];       // 2-4 items, max 20 chars each
+  correctAnswer: string;  // must be one of options
 };
 
 // Update AppSettings
@@ -192,7 +433,7 @@ type AppSettings = {
 };
 ```
 
-### 2.4 Database Schema
+### 3.4 Database Schema
 
 Add to settings table:
 
@@ -202,7 +443,7 @@ ALTER TABLE settings ADD COLUMN custom_questions TEXT DEFAULT '[]';
 ALTER TABLE settings ADD COLUMN enable_custom_questions INTEGER DEFAULT 1;
 ```
 
-### 2.5 Navigation Changes
+### 3.5 Navigation Changes
 
 Update `src/navigation/MainTabs.tsx`:
 
@@ -225,7 +466,7 @@ export type MainTabParamList = {
 />
 ```
 
-### 2.6 MyQuestionsScreen UI
+### 3.6 MyQuestionsScreen UI
 
 **List View:**
 - Header with title "My Questions"
@@ -235,14 +476,14 @@ export type MainTabParamList = {
 - "Add Question" FAB (disabled when 10 questions reached)
 
 **Add/Edit Modal:**
-- Question input (multi-line, char counter 0/120)
+- Question input (multi-line, char counter 0/80)
 - Dynamic options list (2-4 items)
   - Each option: text input + remove button (if > 2 options)
   - "Add Option" button (if < 4 options)
 - Correct answer selector (dropdown/chips from valid options)
 - Save button (disabled until all valid)
 
-### 2.7 Task Generation Integration
+### 3.7 Task Generation Integration
 
 Update `generateTasks()` in `src/services/tasks/taskEngine.ts`:
 
@@ -276,19 +517,19 @@ export function generateTasks(
 }
 ```
 
-### 2.8 Validation Rules
+### 3.8 Validation Rules
 
-- Question: Required, max 120 chars
-- Options: Min 2, max 4, each required, max 30 chars
+- Question: Required, max 80 chars
+- Options: Min 2, max 4, each required, max 20 chars
 - Options must be unique (no duplicates)
 - Correct answer: Must be one of the provided options
 - Max questions: 10 (enforced in UI)
 
 ---
 
-## 3. Integration with Existing Flow
+## 4. Integration with Existing Flow
 
-### 3.1 Alarm Ringing Flow
+### 4.1 Alarm Ringing Flow
 
 1. User dismisses notification → `AlarmRingingScreen`
 2. `useEffect` generates tasks:
@@ -300,7 +541,7 @@ export function generateTasks(
 3. User completes tasks sequentially
 4. After all tasks → navigate to QuoteScreen
 
-### 3.2 Task Count Consideration
+### 4.2 Task Count Consideration
 
 If task count is set to 4 and reflection is enabled:
 - 3 regular tasks + 1 reflection task = 4 total
@@ -308,14 +549,21 @@ If task count is set to 4 and reflection is enabled:
 
 ---
 
-## 4. Testing Checklist
+## 5. Testing Checklist
 
 ### Reflection Task
 - [ ] Reflection appears as last task when enabled
 - [ ] Empty text is rejected, any non-empty text is accepted
 - [ ] Multiple reflection questions rotate correctly
 - [ ] Setting toggle disables/enables reflection
-- [ ] Responses saved to database (if implemented)
+- [ ] Responses saved to database
+- [ ] Reflections screen shows past reflections
+
+### Four New Mini Tasks
+- [ ] icon_match: Grid displays, user selects matching icons
+- [ ] position_tap: Colored grid, user taps correct position
+- [ ] order_tap: Numbered shapes, user taps in sequence
+- [ ] count_objects: Scattered shapes, user enters correct count
 
 ### Custom Questions
 - [ ] Can add question with 2-4 options
@@ -327,7 +575,7 @@ If task count is set to 4 and reflection is enabled:
 
 ---
 
-## 5. Migration Notes
+## 6. Migration Notes
 
 ### Settings Database Migration
 
@@ -351,11 +599,23 @@ if (!columnNames.includes("custom_questions")) {
 if (!columnNames.includes("enable_custom_questions")) {
   await database.execAsync(`ALTER TABLE settings ADD COLUMN enable_custom_questions INTEGER DEFAULT 1`);
 }
+
+// Create reflections table for V2.0
+await database.execAsync(`
+  CREATE TABLE IF NOT EXISTS reflections (
+    id TEXT PRIMARY KEY,
+    alarm_id TEXT NOT NULL,
+    question TEXT NOT NULL,
+    response TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    FOREIGN KEY (alarm_id) REFERENCES alarms(id) ON DELETE CASCADE
+  );
+`);
 ```
 
 ---
 
-## 6. UI/UX Guidelines
+## 7. UI/UX Guidelines
 
 ### Reflection Input
 - Large multi-line text area
@@ -371,7 +631,37 @@ if (!columnNames.includes("enable_custom_questions")) {
 
 ---
 
-## 7. Future Enhancements (Post-V2)
+## Appendix: Implementation Order
+
+### Phase 1: Core Types & Storage
+1. Update types (AlarmTaskType, Task, AppSettings, CustomQuestion)
+2. Database migrations (new columns + reflections table)
+3. Update settings repository to handle new fields
+
+### Phase 2: Task Engine
+1. Add 4 new task generators (icon_match, position_tap, order_tap, count_objects)
+2. Add generateReflectionTask()
+3. Update generateTasks() with reflection & custom questions logic
+4. Update validateAnswer() for reflection type
+
+### Phase 3: My Questions Screen
+1. Create MyQuestionsScreen folder structure (screen, styles, helpers)
+2. Build list view with CRUD operations
+3. Update MainTabs navigation (2 tabs: Alarms | My Questions)
+
+### Phase 4: Reflection Features
+1. Add reflection UI to AlarmRingingScreen
+2. Create ReflectionsScreen inside Settings
+3. Create reflectionRepository
+
+### Phase 5: Integration & Testing
+1. Update AlarmRingingScreen to load settings and generate tasks
+2. Update alarm form task type selector (multi-select checkboxes)
+3. Full flow testing
+
+---
+
+## 8. Future Enhancements (Post-V2)
 
 - AI-generated reflection questions based on time/day
 - Reflection response analytics (word cloud, trends)

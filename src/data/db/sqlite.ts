@@ -131,10 +131,39 @@ export async function initDatabase(): Promise<void> {
       );
     }
 
+    // Add V2.0 columns for reflection and custom questions
+    if (!columns.includes("enable_reflection")) {
+      await database.execAsync(
+        "ALTER TABLE settings ADD COLUMN enable_reflection INTEGER NOT NULL DEFAULT 1"
+      );
+    }
+    if (!columns.includes("custom_questions")) {
+      await database.execAsync(
+        'ALTER TABLE settings ADD COLUMN custom_questions TEXT DEFAULT \'[]\''
+      );
+    }
+    if (!columns.includes("enable_custom_questions")) {
+      await database.execAsync(
+        "ALTER TABLE settings ADD COLUMN enable_custom_questions INTEGER NOT NULL DEFAULT 1"
+      );
+    }
+
+    // Create reflections table for V2.0
+    await database.execAsync(`
+      CREATE TABLE IF NOT EXISTS reflections (
+        id TEXT PRIMARY KEY,
+        alarm_id TEXT NOT NULL,
+        question TEXT NOT NULL,
+        response TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        FOREIGN KEY (alarm_id) REFERENCES alarms(id) ON DELETE CASCADE
+      );
+    `);
+
     // Ensure default row exists with all columns
     await database.execAsync(`
-      INSERT OR IGNORE INTO settings (id, theme, time_format, default_task_count, default_task_types, snooze_policy, snooze_interval, snooze_max_count, ringtone_type, ringtone_name)
-      VALUES (1, 'system', '12h', 5, '["math","color","shape"]', 'afterCompletionOnly', 5, 3, 'default', 'Default');
+      INSERT OR IGNORE INTO settings (id, theme, time_format, default_task_count, default_task_types, snooze_policy, snooze_interval, snooze_max_count, ringtone_type, ringtone_name, enable_reflection, custom_questions, enable_custom_questions)
+      VALUES (1, 'system', '12h', 5, '["math","color","shape"]', 'afterCompletionOnly', 5, 3, 'default', 'Default', 1, '[]', 1);
     `);
     if (DEBUG) console.log("Database migrations completed successfully");
   } catch (migrationErr) {

@@ -2,12 +2,12 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
 import AlarmListScreen from "../screens/alarms/AlarmListScreen/AlarmListScreen";
-import SettingsScreen from "../screens/settings/SettingsScreen/SettingsScreen";
+import MyQuestionsScreen from "../screens/myQuestions/MyQuestionsScreen/MyQuestionsScreen";
 import { useThemeTokens } from "../theme";
 
 export type MainTabParamList = {
   Alarms: undefined;
-  Settings: undefined;
+  MyQuestions: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -23,8 +23,8 @@ export default function MainTabs() {
 
           if (route.name === "Alarms") {
             iconName = focused ? "alarm" : "alarm-outline";
-          } else if (route.name === "Settings") {
-            iconName = focused ? "settings" : "settings-outline";
+          } else if (route.name === "MyQuestions") {
+            iconName = focused ? "help-circle" : "help-circle-outline";
           } else {
             iconName = "help-circle";
           }
@@ -41,8 +41,16 @@ export default function MainTabs() {
         headerShown: false,
       })}
     >
-      <Tab.Screen name="Alarms" component={AlarmListScreen} />
-      <Tab.Screen name="Settings" component={SettingsScreen} />
+      <Tab.Screen
+        name="Alarms"
+        component={AlarmListScreen}
+        options={{ tabBarLabel: "Alarms" }}
+      />
+      <Tab.Screen
+        name="MyQuestions"
+        component={MyQuestionsScreen}
+        options={{ tabBarLabel: "My Questions" }}
+      />
     </Tab.Navigator>
   );
 }

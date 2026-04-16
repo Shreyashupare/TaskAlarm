@@ -88,9 +88,10 @@ const StarShape = () => (
 
 export function renderShape(
   shape: "circle" | "square" | "triangle" | "star",
-  style?: { width: number; height: number }
+  style?: { width: number; height: number; fill?: string }
 ) {
   const scale = style ? style.width / 50 : 1;
+  const fillColor = style?.fill ?? SHAPE_FILL;
 
   switch (shape) {
     case "circle":
@@ -100,7 +101,7 @@ export function renderShape(
             width: 50 * scale,
             height: 50 * scale,
             borderRadius: 25 * scale,
-            backgroundColor: SHAPE_FILL,
+            backgroundColor: fillColor,
             borderWidth: 2 * scale,
             borderColor: SHAPE_STROKE,
           }}
@@ -113,7 +114,7 @@ export function renderShape(
             width: 50 * scale,
             height: 50 * scale,
             borderRadius: 4 * scale,
-            backgroundColor: SHAPE_FILL,
+            backgroundColor: fillColor,
             borderWidth: 2 * scale,
             borderColor: SHAPE_STROKE,
           }}
@@ -132,7 +133,7 @@ export function renderShape(
             borderBottomWidth: 50 * scale,
             borderLeftColor: "transparent",
             borderRightColor: "transparent",
-            borderBottomColor: SHAPE_FILL,
+            borderBottomColor: fillColor,
           }}
         />
       );
@@ -150,7 +151,7 @@ export function renderShape(
             style={{
               width: 40 * scale,
               height: 40 * scale,
-              backgroundColor: SHAPE_FILL,
+              backgroundColor: fillColor,
               borderWidth: 2 * scale,
               borderColor: SHAPE_STROKE,
               transform: [{ rotate: "45deg" }],

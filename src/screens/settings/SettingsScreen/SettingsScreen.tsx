@@ -16,12 +16,18 @@ import { TopHeader } from "../../../components/ui";
 import type { ThemePreference, AlarmTaskType, TimeFormat } from "../../../constants/types";
 import { MIN_TASK_COUNT, MAX_TASK_COUNT } from "../../../constants/AppConstants";
 import { styles } from "./styles";
-import { THEME_OPTIONS, TASK_TYPE_OPTIONS, SNOOZE_OPTIONS, TIME_FORMAT_OPTIONS } from "./helpers/constants";
+import { THEME_OPTIONS, TASK_TYPE_OPTIONS, SNOOZE_OPTIONS, TIME_FORMAT_OPTIONS, TASK_TYPE_OPTIONS_V2 } from "./helpers/constants";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../../../navigation/RootStack";
 
-type ModalType = "theme" | "timeFormat" | "taskType" | "snooze" | null;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+type ModalType = "theme" | "timeFormat" | "taskType" | "snooze" | "reflectionInfo" | null;
 
 export default function SettingsScreen() {
   const t = useThemeTokens();
+  const navigation = useNavigation<NavigationProp>();
   const [activeModal, setActiveModal] = useState<ModalType>(null);
 
   const {
@@ -32,11 +38,16 @@ export default function SettingsScreen() {
     snoozePolicy,
     minTaskCount,
     maxTaskCount,
+    enableReflection,
+    enableCustomQuestions,
+    customQuestions,
     loadSettings,
     updateTheme,
     updateTimeFormat,
     updateDefaultTaskCount,
     updateDefaultTaskTypes,
+    updateEnableReflection,
+    updateEnableCustomQuestions,
   } = useSettingsStore();
 
   useEffect(() => {
@@ -71,10 +82,18 @@ export default function SettingsScreen() {
             autoClose: true,
             onSelect: (val: TimeFormat) => updateTimeFormat(val),
           };
+        case "reflectionInfo":
+          return {
+            title: "About Reflection",
+            options: [],
+            selected: "",
+            autoClose: true,
+            onSelect: () => {},
+          };
         case "taskType":
           return {
             title: "Task Types",
-            options: TASK_TYPE_OPTIONS,
+            options: TASK_TYPE_OPTIONS_V2,
             selected: defaultTaskTypes,
             autoClose: false,
             onSelect: (val: AlarmTaskType) => {
@@ -151,38 +170,46 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             </View>
 
-            {config.options.map((option, index) => (
-              <TouchableOpacity
-                key={option.value}
-                style={[
-                  styles.optionRow,
-                  index < config.options.length - 1 && {
-                    borderBottomColor: t.border.subtle,
-                  },
-                  index < config.options.length - 1 && styles.optionBorder,
-                ]}
-                onPress={() => {
-                  config.onSelect(option.value as never);
-                  if (config.autoClose) {
-                    setActiveModal(null);
-                  }
-                }}
-              >
-                <Text style={[styles.optionLabel, { color: t.text.primary }]}>
-                  {option.label}
+            {activeModal === "reflectionInfo" ? (
+              <View style={{ padding: 20 }}>
+                <Text style={[styles.optionLabel, { color: t.text.primary, lineHeight: 22 }]}>
+                  Reflection is an open-ended question that appears as your final task. It helps you start the day with mindfulness. Any response is accepted and saved to your reflection history.
                 </Text>
-                {(Array.isArray(config.selected)
-                  ? config.selected.includes(option.value as AlarmTaskType)
-                  : config.selected === option.value) && (
-                  <Ionicons
-                    name="checkmark"
-                    size={20}
-                    color={t.action.primaryBg}
-                    style={styles.checkmark}
-                  />
-                )}
-              </TouchableOpacity>
-            ))}
+              </View>
+            ) : (
+              config.options.map((option, index) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.optionRow,
+                    index < config.options.length - 1 && {
+                      borderBottomColor: t.border.subtle,
+                    },
+                    index < config.options.length - 1 && styles.optionBorder,
+                  ]}
+                  onPress={() => {
+                    config.onSelect(option.value as never);
+                    if (config.autoClose) {
+                      setActiveModal(null);
+                    }
+                  }}
+                >
+                  <Text style={[styles.optionLabel, { color: t.text.primary }]}>
+                    {option.label}
+                  </Text>
+                  {(Array.isArray(config.selected)
+                    ? config.selected.includes(option.value as AlarmTaskType)
+                    : config.selected === option.value) && (
+                    <Ionicons
+                      name="checkmark"
+                      size={20}
+                      color={t.action.primaryBg}
+                      style={styles.checkmark}
+                    />
+                  )}
+                </TouchableOpacity>
+              ))
+            )}
           </View>
         </Pressable>
       </Modal>
@@ -247,7 +274,7 @@ export default function SettingsScreen() {
         {/* Default Alarm Settings */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: t.text.secondary }]}>
-            Default Alarm Settings
+            Alarm Settings
           </Text>
           <View
             style={[styles.card, { backgroundColor: t.bg.surface }]}
@@ -260,7 +287,7 @@ export default function SettingsScreen() {
               ]}
             >
               <Text style={[styles.sliderLabel, { color: t.text.primary }]}>
-                Default Task Count
+                Task Count
               </Text>
               <View style={styles.sliderRow}>
                 <TouchableOpacity
@@ -326,6 +353,90 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* V2.0 Task Features */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: t.text.secondary }]}>
+            Task Features
+          </Text>
+          <View style={[styles.card, { backgroundColor: t.bg.surface }]}>
+            {/* Reflection Toggle */}
+            <View style={[styles.row, { borderBottomColor: t.border.subtle, borderBottomWidth: 1 }]}>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text style={[styles.rowLabel, { color: t.text.primary }]}>
+                  Include Reflection
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setActiveModal("reflectionInfo")}
+                  style={{ marginLeft: 8, padding: 4 }}
+                >
+                  <Ionicons name="information-circle-outline" size={20} color={t.icon.secondary} />
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                onPress={() => updateEnableReflection(!enableReflection)}
+                style={[
+                  styles.toggle,
+                  { backgroundColor: enableReflection ? t.action.primaryBg : t.border.default },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.toggleKnob,
+                    {
+                      backgroundColor: "#fff",
+                      transform: [{ translateX: enableReflection ? 20 : 0 }],
+                    },
+                  ]}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* Custom Questions Toggle */}
+            <View style={[styles.row, { borderBottomColor: t.border.subtle, borderBottomWidth: 1 }]}>
+              <Text style={[styles.rowLabel, { color: t.text.primary }]}>
+                Include My Questions
+              </Text>
+              <TouchableOpacity
+                onPress={() => updateEnableCustomQuestions(!enableCustomQuestions)}
+                disabled={customQuestions.length === 0}
+                style={[
+                  styles.toggle,
+                  {
+                    backgroundColor: enableCustomQuestions && customQuestions.length > 0
+                      ? t.action.primaryBg
+                      : t.border.default,
+                    opacity: customQuestions.length === 0 ? 0.5 : 1,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.toggleKnob,
+                    {
+                      backgroundColor: "#fff",
+                      transform: [{ translateX: enableCustomQuestions ? 20 : 0 }],
+                    },
+                  ]}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* View Reflections Link */}
+            <TouchableOpacity style={styles.row} onPress={() => navigation.navigate("Reflections")}>
+              <Text style={[styles.rowLabel, { color: t.text.primary }]}>
+                View Reflections
+              </Text>
+              <View style={styles.rowRight}>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={t.icon.secondary}
+                />
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* About */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: t.text.secondary }]}>
@@ -339,7 +450,7 @@ export default function SettingsScreen() {
                 Version
               </Text>
               <Text style={[styles.rowValue, { color: t.text.secondary }]}>
-                1.0.0
+                2.0.0
               </Text>
             </View>
           </View>

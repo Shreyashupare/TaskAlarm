@@ -17,6 +17,13 @@ export type TimeFormat = "12h" | "24h";
 
 export type RingtoneType = "default" | "custom";
 
+export type CustomQuestion = {
+  id: string;
+  question: string;      // max 80 chars
+  options: string[];     // 2-4 items, max 20 chars each
+  correctAnswer: string; // must be one of options
+};
+
 export type AppSettings = {
   theme: ThemePreference;
   timeFormat: TimeFormat;
@@ -30,6 +37,9 @@ export type AppSettings = {
   ringtoneType: RingtoneType;
   ringtoneName: string;
   ringtoneUri?: string;
+  enableReflection: boolean;
+  customQuestions: CustomQuestion[];
+  enableCustomQuestions: boolean;
 };
 
 export const DEFAULT_SETTINGS: Omit<AppSettings, "minTaskCount" | "maxTaskCount"> = {
@@ -43,4 +53,7 @@ export const DEFAULT_SETTINGS: Omit<AppSettings, "minTaskCount" | "maxTaskCount"
   ringtoneType: DEFAULT_RINGTONE.type,
   ringtoneName: DEFAULT_RINGTONE.name,
   ringtoneUri: DEFAULT_RINGTONE.uri,
+  enableReflection: true,
+  customQuestions: [],
+  enableCustomQuestions: true,
 };

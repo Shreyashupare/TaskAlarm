@@ -165,4 +165,23 @@ export const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 8,
   },
+  // V2.0: Reflection task styles
+  reflectionInput: {
+    minHeight: 120,
+    textAlign: "left",
+    paddingTop: 12,
+    fontSize: 18,
+  },
+  // V2.0: Count objects task styles
+  objectsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 8,
+    marginBottom: 20,
+    maxHeight: 150,
+  },
+  objectItem: {
+    margin: 4,
+  },
 });

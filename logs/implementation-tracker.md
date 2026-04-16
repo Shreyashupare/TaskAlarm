@@ -41,25 +41,70 @@ Simple checklist to track what is done and what is pending.
 - [x] Task generation failure fallback (retry + math fallback)
 ## V2.0 Features
 
-- [x] Create spec `docs/specs/08-version2.0.md` - Reflection Task & Custom Questions
-- [ ] Implement Reflection Task Engine (open-ended questions, always last task)
-- [ ] Implement Custom User Questions screen with CRUD operations
-- [ ] Replace Settings tab with My Questions tab in footer navigation
+- [x] Create spec `docs/specs/08-version2.0.md` - Extended Task Engine (Reflection + 4 Mini Tasks + Custom Questions)
 
-## Additional Tasks (V2 / Post-MVP)
+### Phase 1: Core Types & Storage
+- [x] Update AlarmTaskType (add icon_match, position_tap, order_tap, count_objects)
+- [x] Update Task type (add reflection, custom)
+- [x] Add CustomQuestion type
+- [x] Update AppSettings (enableReflection, enableCustomQuestions, customQuestions)
+- [x] Database migrations (enable_reflection, custom_questions, enable_custom_questions columns)
+- [x] Create reflections table
+- [x] Create defaultReflectionQuestions.ts constants file
 
-Details in `docs/product/features.md` and `docs/specs/01-architecture.md`:
+### Phase 2: Task Engine
+- [x] Implement generateIconMatchTask()
+- [x] Implement generatePositionTapTask()
+- [x] Implement generateOrderTapTask()
+- [x] Implement generateCountObjectsTask()
+- [x] Implement generateReflectionTask()
+- [x] Implement generateCustomQuestionTask()
+- [x] Update generateTasks() with reflection (always last) & custom questions logic
+- [x] Update validateAnswer() for reflection type (any non-empty text)
+- [x] Update mapTaskType() to include 4 new mini tasks
 
-- [ ] Additional mini task types: `icon_match`, `position_tap`, `order_tap`, `count_objects`
+### Phase 3: My Questions Screen
+- [x] Create MyQuestionsScreen folder structure (screen, styles, helpers/)
+- [x] Build MyQuestionsScreen list view (question preview, option count)
+- [x] Build Add/Edit modal (question 0/80, options 0/20, char counters)
+- [x] Implement CRUD: Create, Read, Update, Delete
+- [x] Add validation (max 10 questions, 2-4 options, unique options)
+- [x] Update MainTabs.tsx (Alarms | My Questions, Settings via gear icon)
+- [x] Add Settings gear icon to AlarmListScreen header
+
+### Phase 4: Reflection Features
+- [x] Add reflection UI to AlarmRingingScreen (multiline input, submit button)
+- [x] Create reflectionRepository.ts (saveReflection, getRecentReflections)
+- [x] Create ReflectionsScreen inside Settings (list past reflections, grouped by date)
+- [x] Save reflection response on task completion
+
+### Phase 5: Settings Integration
+- [x] Add global task type selector in Settings (math, color, shape, 4 new types)
+- [x] Add "Include Reflection" toggle in Settings
+- [x] Add "Include My Questions" toggle in Settings (disabled if no questions)
+- [x] Wire up settings to task generation in AlarmRingingScreen
+
+### Phase 6: Testing (Manual checklist for QA)
+- [ ] Test all 4 new mini task types render correctly
+- [ ] Test reflection appears last and accepts any non-empty text
+- [ ] Test custom questions CRUD operations
+- [ ] Test custom questions appear in task rotation
+- [ ] Test max 10 questions enforced
+- [ ] Test reflections saved and viewable in ReflectionsScreen
+- [ ] Test settings toggles (reflection, custom questions) work correctly
+- [ ] Test navigation: Alarms tab, My Questions tab, Settings via gear
+
+## Post-V2 / MVP Remaining
+
 - [ ] Sound preview in alarm form
 - [ ] Quick duplicate alarm option
-- [ ] Reboot restore (Android receiver) - Post-MVP
+- [ ] Reboot restore (Android receiver)
+- [ ] iOS sound limitations handling
 
 ## Platform checks
 
 - [x] Android exact alarm permission flow - checkExactAlarmPermission() + openExactAlarmSettings()
 - [x] Basic background/foreground behavior testing - Foreground event handler in App.tsx
-- [ ] iOS sound limitations handling (Post-MVP)
 
 ## Development checklist (start implementation)
 

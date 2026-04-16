@@ -23,6 +23,7 @@ import { DEBUG } from "../../../constants/AppConstants";
 import { styles } from "./styles";
 import { formatTime } from "./helpers/utils";
 import { renderShape } from "./helpers/shapes";
+import { saveReflection } from "../../../data/repositories/reflectionRepository";
 
 type Props = NativeStackScreenProps<RootStackParamList, "AlarmRinging">;
 
@@ -50,6 +51,9 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
   // Get current task from store
   const currentTask = useRingingStore(state => state.tasks[state.currentTaskIndex]);
 
+  // V2.0: State for reflection text input
+  const [reflectionText, setReflectionText] = useState("");
+
   // Start ringing on mount
   useEffect(() => {
     const alarm = useAlarmStore.getState().alarms.find((a) => a.id === alarmId);
@@ -59,14 +63,26 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
     const taskCount = settings.defaultTaskCount ?? 5;
     const taskTypes = settings.defaultTaskTypes ?? ["math"];
 
+    // V2.0: Get reflection and custom questions settings
+    const includeReflection = settings.enableReflection ?? true;
+    const includeCustomQuestions = settings.enableCustomQuestions ?? true;
+    const customQuestions = settings.customQuestions ?? [];
+
     if (DEBUG) {
       console.log("AlarmRingingScreen - settings.defaultTaskCount:", settings.defaultTaskCount);
       console.log("AlarmRingingScreen - final taskCount:", taskCount);
+      console.log("AlarmRingingScreen - includeReflection:", includeReflection);
+      console.log("AlarmRingingScreen - includeCustomQuestions:", includeCustomQuestions);
     }
 
     startRinging(alarmId, alarm?.label, taskCount);
 
-    const tasks = generateTasks(taskCount, taskTypes);
+    // V2.0: Use enhanced generateTasks with reflection and custom questions
+    const tasks = generateTasks(taskCount, taskTypes, {
+      includeReflection,
+      includeCustomQuestions,
+      customQuestions,
+    });
     if (DEBUG) console.log("AlarmRingingScreen - generated tasks count:", tasks.length);
     useRingingStore.setState({ tasks });
 
@@ -87,8 +103,28 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
     return () => clearInterval(interval);
   }, []);
 
-  const handleAnswerSubmit = useCallback(() => {
+  const handleAnswerSubmit = useCallback(async () => {
     if (!currentTask) return;
+
+    // V2.0: Save reflection response to database
+    if (currentTask.type === "reflection") {
+      if (validateAnswer(currentTask, userAnswer)) {
+        // Save reflection to database
+        try {
+          await saveReflection(alarmId, currentTask.question, userAnswer);
+        } catch (err) {
+          console.error("Failed to save reflection:", err);
+          // Continue even if save fails - don't block the user
+        }
+        completeCurrentTask();
+        setUserAnswer("");
+        setError(null);
+      } else {
+        setError("Please enter a response");
+        setTimeout(() => setError(null), 2000);
+      }
+      return;
+    }
 
     if (validateAnswer(currentTask, userAnswer)) {
       completeCurrentTask();
@@ -100,7 +136,7 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
       // Clear error after 2 seconds
       setTimeout(() => setError(null), 2000);
     }
-  }, [currentTask, userAnswer, completeCurrentTask]);
+  }, [currentTask, userAnswer, completeCurrentTask, alarmId]);
 
   const handleOptionPress = useCallback((option: string) => {
     if (!currentTask) return;
@@ -131,6 +167,82 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
       return (
         <View style={[styles.taskCard, { backgroundColor: t.bg.surfaceElevated }]}>
           <Text style={[styles.taskQuestion, { color: t.text.primary }]}>All tasks completed!</Text>
+        </View>
+      );
+    }
+
+    // V2.0: Handle reflection task (open-ended text input)
+    if (currentTask.type === "reflection") {
+      return (
+        <View style={[styles.taskCard, { backgroundColor: t.bg.surfaceElevated }]}>
+          <Text style={[styles.taskQuestion, { color: t.text.primary }]}>{currentTask.question}</Text>
+          <TextInput
+            style={[styles.input, styles.reflectionInput, { borderColor: t.border.default, color: t.text.primary, backgroundColor: t.bg.surface }]}
+            value={reflectionText}
+            onChangeText={setReflectionText}
+            placeholder="Type your response..."
+            placeholderTextColor={t.text.secondary}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+            autoFocus
+          />
+          <TouchableOpacity
+            style={[
+              styles.submitButton,
+              { backgroundColor: reflectionText.trim() ? t.action.primaryBg : t.text.secondary },
+            ]}
+            onPress={() => {
+              setUserAnswer(reflectionText);
+              handleAnswerSubmit();
+            }}
+            disabled={!reflectionText.trim()}
+          >
+            <Text style={[styles.submitText, { color: reflectionText.trim() ? t.action.primaryText : t.bg.app }]}>
+              Submit
+            </Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    // V2.0: Handle count_objects task (number input)
+    if (currentTask.type === "count_objects") {
+      return (
+        <View style={[styles.taskCard, { backgroundColor: t.bg.surfaceElevated }]}>
+          <Text style={[styles.taskQuestion, { color: t.text.primary }]}>{currentTask.question}</Text>
+          {/* Visual display of objects */}
+          <View style={styles.objectsGrid}>
+            {currentTask.visualData?.map((item, index) => {
+              const shapeItem = item as { shape: "circle" | "square" | "triangle" | "star"; color: string };
+              return (
+                <View key={index} style={styles.objectItem}>
+                  {renderShape(shapeItem.shape, { width: 30, height: 30, fill: shapeItem.color })}
+                </View>
+              );
+            })}
+          </View>
+          <TextInput
+            style={[styles.input, { borderColor: t.border.default, color: t.text.primary, backgroundColor: t.bg.surface }]}
+            value={userAnswer}
+            onChangeText={setUserAnswer}
+            keyboardType="number-pad"
+            placeholder="?"
+            placeholderTextColor={t.text.secondary}
+            autoFocus
+          />
+          <TouchableOpacity
+            style={[
+              styles.submitButton,
+              { backgroundColor: userAnswer.trim() ? t.action.primaryBg : t.text.secondary },
+            ]}
+            onPress={handleAnswerSubmit}
+            disabled={!userAnswer.trim()}
+          >
+            <Text style={[styles.submitText, { color: userAnswer.trim() ? t.action.primaryText : t.bg.app }]}>
+              Submit
+            </Text>
+          </TouchableOpacity>
         </View>
       );
     }
