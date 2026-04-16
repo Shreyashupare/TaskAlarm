@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1a1a2e",
+    // Background color set dynamically via theme
   },
   backButton: {
     position: "absolute",
@@ -20,53 +20,53 @@ export const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 18,
-    color: "#aaa",
     marginBottom: 8,
+    // Color set dynamically via theme
   },
   time: {
     fontSize: 48,
     fontWeight: "200",
-    color: "#fff",
     marginBottom: 48,
     fontVariant: ["tabular-nums"],
+    // Color set dynamically via theme
   },
   quoteCard: {
-    backgroundColor: "rgba(255,255,255,0.08)",
     borderRadius: 16,
     padding: 24,
     width: "100%",
     maxWidth: 400,
+    // Background color set dynamically via theme
   },
   quoteText: {
     fontSize: 20,
     fontWeight: "500",
-    color: "#fff",
     textAlign: "center",
     lineHeight: 28,
     fontStyle: "italic",
+    // Color set dynamically via theme
   },
   quoteAuthor: {
     fontSize: 14,
-    color: "#aaa",
     textAlign: "center",
     marginTop: 16,
+    // Color set dynamically via theme
   },
   fallbackText: {
     fontSize: 24,
     fontWeight: "600",
-    color: "#fff",
     textAlign: "center",
+    // Color set dynamically via theme
   },
   dismissButton: {
     marginTop: 48,
-    backgroundColor: "rgba(255,255,255,0.15)",
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,
+    // Background color set dynamically via theme
   },
   dismissText: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+    // Color set dynamically via theme
   },
 });

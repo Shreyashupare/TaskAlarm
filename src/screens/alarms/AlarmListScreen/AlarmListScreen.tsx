@@ -12,6 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { useThemeTokens } from "../../../theme";
+import { DEBUG } from "../../../constants/AppConstants";
 import { useAlarmStore } from "../../../stores/useAlarmStore";
 import { scheduleAlarm, cancelAlarm } from "../../../services/alarmScheduler";
 import type { RootStackParamList } from "../../../navigation/RootStack";
@@ -33,7 +34,7 @@ export default function AlarmListScreen() {
 
   // Debug: log alarms count
   useEffect(() => {
-    console.log("AlarmListScreen alarms count:", alarms.length);
+    if (DEBUG) console.log("AlarmListScreen alarms count:", alarms.length);
   }, [alarms]);
 
   const handleEdit = (alarm: Alarm) => {

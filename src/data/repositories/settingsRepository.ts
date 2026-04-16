@@ -1,4 +1,5 @@
 import { openDatabase } from "../db/sqlite";
+import { MIN_TASK_COUNT, MAX_TASK_COUNT } from "../../constants/AppConstants";
 import type { AppSettings, ThemePreference, AlarmTaskType, TimeFormat } from "../../constants/types";
 
 type SettingsRow = {
@@ -38,8 +39,8 @@ export async function getSettings(): Promise<AppSettings> {
     theme: row.theme,
     timeFormat: row.time_format ?? "12h",
     defaultTaskCount: row.default_task_count,
-    minTaskCount: 3,
-    maxTaskCount: 10,
+    minTaskCount: MIN_TASK_COUNT,
+    maxTaskCount: MAX_TASK_COUNT,
     defaultTaskTypes: taskTypes,
     snoozePolicy: row.snooze_policy,
     snoozeInterval: row.snooze_interval ?? 5,

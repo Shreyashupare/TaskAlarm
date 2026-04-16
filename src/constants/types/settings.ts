@@ -21,8 +21,8 @@ export type AppSettings = {
   theme: ThemePreference;
   timeFormat: TimeFormat;
   defaultTaskCount: number;
-  minTaskCount: typeof MIN_TASK_COUNT;
-  maxTaskCount: typeof MAX_TASK_COUNT;
+  minTaskCount: number;
+  maxTaskCount: number;
   defaultTaskTypes: AlarmTaskType[];
   snoozePolicy: typeof DEFAULT_SNOOZE_POLICY;
   snoozeInterval: number; // minutes

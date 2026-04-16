@@ -29,7 +29,7 @@ export default function AlarmFormScreen({ route, navigation }: Props) {
   const { alarmId } = route.params || {};
   const isEdit = Boolean(alarmId);
   const { alarms, addAlarm, updateAlarm, loadAlarms } = useAlarmStore();
-  const { timeFormat } = useSettingsStore();
+  const { timeFormat, defaultTaskCount } = useSettingsStore();
   const use24Hour = timeFormat === "24h";
 
   const [time, setTime] = useState({ hours: 7, minutes: 0 });
@@ -39,6 +39,7 @@ export default function AlarmFormScreen({ route, navigation }: Props) {
   const [soundType, setSoundType] = useState<"default" | "custom">("default");
   const [soundName, setSoundName] = useState("Default");
   const [soundUri, setSoundUri] = useState<string | undefined>(undefined);
+  const [taskCount, setTaskCount] = useState(defaultTaskCount ?? 4);
 
   useEffect(() => {
     loadAlarms();
@@ -56,9 +57,17 @@ export default function AlarmFormScreen({ route, navigation }: Props) {
         setSoundType(alarm.soundType);
         setSoundName(alarm.soundName);
         setSoundUri(alarm.soundUri);
+        setTaskCount(alarm.taskCount);
       }
     }
   }, [isEdit, alarmId, alarms]);
+
+  // Update taskCount when defaultTaskCount changes from settings (for new alarms only)
+  useEffect(() => {
+    if (!isEdit) {
+      setTaskCount(defaultTaskCount ?? 4);
+    }
+  }, [defaultTaskCount, isEdit]);
 
   const toggleWeekday = (day: number) => {
     setWeekdays(prev =>
@@ -81,7 +90,7 @@ export default function AlarmFormScreen({ route, navigation }: Props) {
       soundUri,
       vibration,
       taskType: "math", // Uses global settings at ring time
-      taskCount: 4, // Uses global settings at ring time
+      taskCount, // Use the state value (loaded from alarm in edit mode, or default for new)
       createdAt: isEdit ? (alarms.find(a => a.id === alarmId)?.createdAt ?? now) : now,
       updatedAt: now,
     };

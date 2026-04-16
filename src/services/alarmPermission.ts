@@ -1,5 +1,6 @@
 import { Platform, Linking } from "react-native";
 import * as Notifications from "expo-notifications";
+import { DEBUG } from "../constants/AppConstants";
 
 export type PermissionState = "granted" | "denied" | "unknown";
 
@@ -16,7 +17,7 @@ export async function checkExactAlarmPermission(): Promise<PermissionState> {
     if (permissions.canAskAgain) return "unknown";
     return "denied";
   } catch (err) {
-    console.error("Error checking alarm permission:", err);
+    if (DEBUG) console.error("Error checking alarm permission:", err);
     return "unknown";
   }
 }
@@ -43,7 +44,7 @@ export async function requestExactAlarmPermissionIfNeeded(): Promise<PermissionS
     
     return result.granted ? "granted" : result.canAskAgain ? "unknown" : "denied";
   } catch (err) {
-    console.error("Error requesting alarm permission:", err);
+    if (DEBUG) console.error("Error requesting alarm permission:", err);
     return "denied";
   }
 }
@@ -55,6 +56,6 @@ export async function openSystemAlarmSettings(): Promise<void> {
   try {
     await Linking.openSettings();
   } catch (err) {
-    console.error("Failed to open system settings:", err);
+    if (DEBUG) console.error("Failed to open system settings:", err);
   }
 }

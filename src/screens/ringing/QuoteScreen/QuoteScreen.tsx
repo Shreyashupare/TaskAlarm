@@ -9,6 +9,8 @@ import { useRingingStore } from "../../../stores/useRingingStore";
 import { useSettingsStore } from "../../../stores/useSettingsStore";
 import type { Quote } from "../../../constants/types";
 import * as quoteRepository from "../../../data/repositories/quoteRepository";
+import { DEBUG } from "../../../constants/AppConstants";
+import { useThemeTokens } from "../../../theme";
 import { styles } from "./styles";
 import { getGreeting, formatTime } from "./helpers/utils";
 
@@ -21,6 +23,7 @@ export default function QuoteScreen({ navigation }: Props) {
 
   const { reset, quote: storeQuote } = useRingingStore();
   const { timeFormat } = useSettingsStore();
+  const t = useThemeTokens();
   const use24Hour = timeFormat === "24h";
 
   useEffect(() => {
@@ -51,7 +54,7 @@ export default function QuoteScreen({ navigation }: Props) {
           setQuote(randomQuote);
         }
       } catch (err) {
-        console.error("Failed to load quote:", err);
+        if (DEBUG) console.error("Failed to load quote:", err);
         // Retry once if initial load fails
         if (retryCount < 1) {
           setTimeout(() => loadQuote(retryCount + 1), 500);
@@ -74,37 +77,37 @@ export default function QuoteScreen({ navigation }: Props) {
   const greeting = getGreeting();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: t.bg.app }]}>
       {/* Back Button */}
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.navigate("MainTabs", { screen: "Alarms" })}
       >
-        <Ionicons name="arrow-back" size={28} color="#fff" />
+        <Ionicons name="arrow-back" size={28} color={t.icon.primary} />
       </TouchableOpacity>
 
       <View style={styles.content}>
         {/* Greeting and Time */}
-        <Text style={styles.greeting}>{greeting}</Text>
-        <Text style={styles.time}>{formatTime(currentTime, use24Hour)}</Text>
+        <Text style={[styles.greeting, { color: t.text.secondary }]}>{greeting}</Text>
+        <Text style={[styles.time, { color: t.text.primary }]}>{formatTime(currentTime, use24Hour)}</Text>
 
         {/* Quote or Fallback */}
-        <View style={styles.quoteCard}>
+        <View style={[styles.quoteCard, { backgroundColor: t.bg.surfaceElevated }]}>
           {isLoading ? (
-            <Text style={styles.quoteText}>Loading...</Text>
+            <Text style={[styles.quoteText, { color: t.text.primary }]}>Loading...</Text>
           ) : quote ? (
             <>
-              <Text style={styles.quoteText}>
+              <Text style={[styles.quoteText, { color: t.text.primary }]}>
                 &ldquo;{quote.text}&rdquo;
               </Text>
               {quote.author && (
-                <Text style={styles.quoteAuthor}>
+                <Text style={[styles.quoteAuthor, { color: t.text.secondary }]}>
                   &mdash; {quote.author}
                 </Text>
               )}
             </>
           ) : (
-            <Text style={styles.fallbackText}>
+            <Text style={[styles.fallbackText, { color: t.text.primary }]}>
               {greeting}!
             </Text>
           )}
@@ -112,10 +115,10 @@ export default function QuoteScreen({ navigation }: Props) {
 
         {/* Dismiss Button */}
         <TouchableOpacity
-          style={styles.dismissButton}
+          style={[styles.dismissButton, { backgroundColor: t.action.secondaryBg }]}
           onPress={handleDismiss}
         >
-          <Text style={styles.dismissText}>Start Your Day</Text>
+          <Text style={[styles.dismissText, { color: t.action.secondaryText }]}>Start Your Day</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

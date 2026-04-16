@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1a1a2e", // Dark background for ringing screen
+    // Background color set dynamically via theme
   },
   header: {
     alignItems: "center",
@@ -27,33 +27,33 @@ export const styles = StyleSheet.create({
   time: {
     fontSize: 64,
     fontWeight: "200",
-    color: "#fff",
     fontVariant: ["tabular-nums"],
+    // Color set dynamically via theme
   },
   label: {
     fontSize: 18,
-    color: "#aaa",
     marginTop: 8,
+    // Color set dynamically via theme
   },
   progressContainer: {
     paddingHorizontal: 20,
     marginTop: 20,
   },
   progressText: {
-    color: "#fff",
     fontSize: 14,
     textAlign: "center",
     marginBottom: 8,
+    // Color set dynamically via theme
   },
   progressBar: {
     height: 4,
-    backgroundColor: "rgba(255,255,255,0.2)",
     borderRadius: 2,
+    // Background color set dynamically via theme
   },
   progressFill: {
     height: "100%",
-    backgroundColor: "#4CAF50",
     borderRadius: 2,
+    // Background color set dynamically via theme
   },
   taskContainer: {
     flex: 1,
@@ -62,18 +62,18 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   taskCard: {
-    backgroundColor: "rgba(255,255,255,0.1)",
     borderRadius: 16,
     padding: 24,
     width: "100%",
     maxWidth: 400,
+    // Background color set dynamically via theme
   },
   taskQuestion: {
     fontSize: 28,
     fontWeight: "600",
-    color: "#fff",
     textAlign: "center",
     marginBottom: 24,
+    // Color set dynamically via theme
   },
   optionsGrid: {
     flexDirection: "row",
@@ -85,29 +85,29 @@ export const styles = StyleSheet.create({
     minWidth: 80,
     paddingVertical: 16,
     paddingHorizontal: 24,
-    backgroundColor: "rgba(255,255,255,0.2)",
     borderRadius: 12,
     alignItems: "center",
+    // Background color set dynamically via theme
   },
   optionText: {
-    color: "#fff",
     fontSize: 18,
     fontWeight: "600",
+    // Color set dynamically via theme
   },
   colorBox: {
     width: 80,
     height: 80,
     borderRadius: 12,
     borderWidth: 3,
-    borderColor: "rgba(255,255,255,0.3)",
+    borderColor: "rgba(128,128,128,0.3)",
   },
   shapeContainer: {
     width: 80,
     height: 80,
     borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(128,128,128,0.1)",
     borderWidth: 3,
-    borderColor: "rgba(255,255,255,0.3)",
+    borderColor: "rgba(128,128,128,0.3)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -117,49 +117,48 @@ export const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.3)",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 24,
-    color: "#fff",
     textAlign: "center",
     marginBottom: 16,
+    // Colors set dynamically via theme
   },
   submitButton: {
-    backgroundColor: "#4CAF50",
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
+    // Background color set dynamically via theme
   },
   submitText: {
-    color: "#fff",
     fontSize: 18,
     fontWeight: "600",
+    // Color set dynamically via theme
   },
   stopContainer: {
     padding: 20,
     paddingBottom: 40,
   },
   stopButton: {
-    backgroundColor: "#f44336",
     paddingVertical: 20,
     borderRadius: 16,
     alignItems: "center",
+    // Background color set dynamically via theme
   },
   stopButtonDisabled: {
-    backgroundColor: "rgba(244,67,54,0.3)",
+    // Background color set dynamically via theme
   },
   stopText: {
-    color: "#fff",
     fontSize: 20,
     fontWeight: "700",
+    // Color set dynamically via theme
   },
   lockedText: {
-    color: "#aaa",
     fontSize: 14,
     textAlign: "center",
     marginTop: 8,
+    // Color set dynamically via theme
   },
   errorText: {
     color: "#f44336",

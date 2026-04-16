@@ -1,9 +1,12 @@
 import type { AlarmTaskType } from "./types";
 
+// Debug flag - set to false for production builds
+export const DEBUG = __DEV__; // Only true in development
+
 // Task count limits
 export const MIN_TASK_COUNT = 3;
-export const MAX_TASK_COUNT = 10;
-export const DEFAULT_TASK_COUNT = 4;
+export const MAX_TASK_COUNT = 12;
+export const DEFAULT_TASK_COUNT = 5;
 
 // Default settings
 export const DEFAULT_TASK_TYPES: AlarmTaskType[] = ["math", "color", "shape"];

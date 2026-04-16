@@ -1,5 +1,6 @@
 import type { Task } from "../../stores/types";
 import type { AlarmTaskType } from "../../constants/types";
+import { DEBUG } from "../../constants/AppConstants";
 
 // MVP: Supporting core task types. Additional types fallback to math.
 type TaskType = "math" | "color" | "shape" | "mixed";
@@ -106,7 +107,7 @@ function safeGenerateTask(type: TaskType, index: number, attempt: number = 0): T
     if (attempt === 0) {
       return safeGenerateTask(type, index, 1);
     }
-    console.error("Task generation failed, using math fallback:", err);
+    if (DEBUG) console.error("Task generation failed, using math fallback:", err);
     return generateMathTask(index);
   }
 }

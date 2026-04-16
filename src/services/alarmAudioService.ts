@@ -1,4 +1,5 @@
 import { useAudioPlayer } from "expo-audio";
+import { DEBUG } from "../constants/AppConstants";
 import { useEffect, useRef, useCallback } from "react";
 
 // MVP: The alarm sound is primarily handled by the notification system
@@ -31,7 +32,7 @@ export function useAlarmAudio() {
       // In-app audio is optional enhancement
       isPlayingRef.current = true;
     } catch (err) {
-      console.error("Failed to start alarm audio:", err);
+      if (DEBUG) console.error("Failed to start alarm audio:", err);
     }
   }, [player]);
 
@@ -42,7 +43,7 @@ export function useAlarmAudio() {
       await player.pause();
       isPlayingRef.current = false;
     } catch (err) {
-      console.error("Failed to stop alarm audio:", err);
+      if (DEBUG) console.error("Failed to stop alarm audio:", err);
     }
   }, [player]);
 
@@ -52,5 +53,5 @@ export function useAlarmAudio() {
 export async function configureAudioSession(): Promise<void> {
   // MVP: Audio session is handled by the notification system
   // The notification's sound plays even when app is in background
-  console.log("Audio session configured (using notification sound)");
+  if (DEBUG) console.log("Audio session configured (using notification sound)");
 }

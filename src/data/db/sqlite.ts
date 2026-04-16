@@ -1,10 +1,11 @@
-import * as SQLite from "expo-sqlite";
+import { SQLiteDatabase, openDatabaseAsync } from "expo-sqlite";
+import { DEBUG } from "../../constants/AppConstants";
 
-let db: SQLite.SQLiteDatabase | null = null;
+let db: SQLiteDatabase | null = null;
 
-export async function openDatabase(): Promise<SQLite.SQLiteDatabase> {
+export async function openDatabase(): Promise<SQLiteDatabase> {
   if (!db) {
-    db = await SQLite.openDatabaseAsync("taskalarm.db");
+    db = await openDatabaseAsync("taskalarm.db");
   }
   return db;
 }
@@ -56,10 +57,12 @@ export async function initDatabase(): Promise<void> {
 
   // Migration: handle missing columns
   try {
+    if (DEBUG) console.log("Running database migrations...");
     const tableInfo = await database.getAllAsync<{ name: string }>(
       "PRAGMA table_info(settings)"
     );
-    const columns = tableInfo.map(col => col.name);
+    const columns = tableInfo.map((col: { name: string }) => col.name);
+    if (DEBUG) console.log("Settings table columns:", columns);
 
     // Add time_format column if missing
     if (!columns.includes("time_format")) {
@@ -70,12 +73,26 @@ export async function initDatabase(): Promise<void> {
 
     // Handle default_task_type -> default_task_types migration
     if (columns.includes("default_task_type") && !columns.includes("default_task_types")) {
-      await database.execAsync(`
-        ALTER TABLE settings RENAME COLUMN default_task_type TO default_task_types;
-        UPDATE settings SET default_task_types = '["math","color","shape"]' WHERE default_task_types = 'mixed' OR default_task_types IS NULL;
-        UPDATE settings SET default_task_types = '["' || default_task_types || '"]'
-          WHERE default_task_types NOT LIKE '[%';
-      `);
+      try {
+        // Step 1: Add new column
+        await database.execAsync(
+          `ALTER TABLE settings ADD COLUMN default_task_types TEXT NOT NULL DEFAULT '["math","color","shape"]';`
+        );
+        // Step 2: Copy data from old column, converting values
+        await database.execAsync(`
+          UPDATE settings SET default_task_types = 
+            CASE 
+              WHEN default_task_type = 'mixed' OR default_task_type IS NULL THEN '["math","color","shape"]'
+              WHEN default_task_type NOT LIKE '[%' THEN '["' || default_task_type || '"]'
+              ELSE default_task_type
+            END
+          WHERE default_task_types = '["math","color","shape"]';
+        `);
+        // Step 3: Drop old column (optional - can keep for safety)
+        // await database.execAsync(`ALTER TABLE settings DROP COLUMN default_task_type;`);
+      } catch (renameErr) {
+        if (DEBUG) console.error("Failed to migrate default_task_type:", renameErr);
+      }
     }
 
     // Add default_task_types column if both old and new are missing
@@ -117,9 +134,12 @@ export async function initDatabase(): Promise<void> {
     // Ensure default row exists with all columns
     await database.execAsync(`
       INSERT OR IGNORE INTO settings (id, theme, time_format, default_task_count, default_task_types, snooze_policy, snooze_interval, snooze_max_count, ringtone_type, ringtone_name)
-      VALUES (1, 'system', '12h', 4, '["math","color","shape"]', 'afterCompletionOnly', 5, 3, 'default', 'Default');
+      VALUES (1, 'system', '12h', 5, '["math","color","shape"]', 'afterCompletionOnly', 5, 3, 'default', 'Default');
     `);
+    if (DEBUG) console.log("Database migrations completed successfully");
   } catch (migrationErr) {
-    console.log("Migration check (non-critical):", migrationErr);
+    if (DEBUG) console.error("Database migration error:", migrationErr);
+    // Re-throw to prevent app from starting with broken database
+    throw migrationErr;
   }
 }

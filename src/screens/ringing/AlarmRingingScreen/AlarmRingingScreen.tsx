@@ -18,6 +18,8 @@ import { useRingingStore } from "../../../stores/useRingingStore";
 import { useAlarmAudio } from "../../../services/alarmAudioService";
 import { generateTasks, validateAnswer } from "../../../services/tasks/taskEngine";
 import type { Task } from "../../../stores/types";
+import { useThemeTokens } from "../../../theme";
+import { DEBUG } from "../../../constants/AppConstants";
 import { styles } from "./styles";
 import { formatTime } from "./helpers/utils";
 import { renderShape } from "./helpers/shapes";
@@ -32,6 +34,7 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const { timeFormat } = useSettingsStore();
   const use24Hour = timeFormat === "24h";
+  const t = useThemeTokens();
 
   const {
     alarmLabel,
@@ -52,12 +55,19 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
     const alarm = useAlarmStore.getState().alarms.find((a) => a.id === alarmId);
     const settings = useSettingsStore.getState();
 
-    const taskCount = alarm?.taskCount ?? settings.defaultTaskCount ?? 4;
+    // Always use current settings, not the alarm's saved taskCount
+    const taskCount = settings.defaultTaskCount ?? 5;
     const taskTypes = settings.defaultTaskTypes ?? ["math"];
+
+    if (DEBUG) {
+      console.log("AlarmRingingScreen - settings.defaultTaskCount:", settings.defaultTaskCount);
+      console.log("AlarmRingingScreen - final taskCount:", taskCount);
+    }
 
     startRinging(alarmId, alarm?.label, taskCount);
 
     const tasks = generateTasks(taskCount, taskTypes);
+    if (DEBUG) console.log("AlarmRingingScreen - generated tasks count:", tasks.length);
     useRingingStore.setState({ tasks });
 
     startLoop();
@@ -119,30 +129,36 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
   const renderTaskContent = () => {
     if (!currentTask) {
       return (
-        <View style={styles.taskCard}>
-          <Text style={styles.taskQuestion}>All tasks completed!</Text>
+        <View style={[styles.taskCard, { backgroundColor: t.bg.surfaceElevated }]}>
+          <Text style={[styles.taskQuestion, { color: t.text.primary }]}>All tasks completed!</Text>
         </View>
       );
     }
 
     if (currentTask.type === "math") {
       return (
-        <View style={styles.taskCard}>
-          <Text style={styles.taskQuestion}>{currentTask.question}</Text>
+        <View style={[styles.taskCard, { backgroundColor: t.bg.surfaceElevated }]}>
+          <Text style={[styles.taskQuestion, { color: t.text.primary }]}>{currentTask.question}</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: t.border.default, color: t.text.primary, backgroundColor: t.bg.surface }]}
             value={userAnswer}
             onChangeText={setUserAnswer}
             keyboardType="number-pad"
             placeholder="?"
-            placeholderTextColor="#666"
+            placeholderTextColor={t.text.secondary}
             autoFocus
           />
           <TouchableOpacity
-            style={styles.submitButton}
+            style={[
+              styles.submitButton,
+              { backgroundColor: userAnswer.trim() ? t.action.primaryBg : t.text.secondary },
+            ]}
             onPress={handleAnswerSubmit}
+            disabled={!userAnswer.trim()}
           >
-            <Text style={styles.submitText}>Submit</Text>
+            <Text style={[styles.submitText, { color: userAnswer.trim() ? t.action.primaryText : t.bg.app }]}>
+              Submit
+            </Text>
           </TouchableOpacity>
         </View>
       );
@@ -153,8 +169,8 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
     const isShapeTask = currentTask.type === "shape";
 
     return (
-      <View style={styles.taskCard}>
-        <Text style={styles.taskQuestion}>{currentTask.question}</Text>
+      <View style={[styles.taskCard, { backgroundColor: t.bg.surfaceElevated }]}>
+        <Text style={[styles.taskQuestion, { color: t.text.primary }]}>{currentTask.question}</Text>
         <View style={styles.optionsGrid}>
           {currentTask.options?.map((option, index) => {
             const visual = currentTask.visualData?.[index];
@@ -185,10 +201,10 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
             return (
               <TouchableOpacity
                 key={option}
-                style={styles.optionButton}
+                style={[styles.optionButton, { backgroundColor: t.action.secondaryBg }]}
                 onPress={() => handleOptionPress(option)}
               >
-                <Text style={styles.optionText}>{option}</Text>
+                <Text style={[styles.optionText, { color: t.action.secondaryText }]}>{option}</Text>
               </TouchableOpacity>
             );
           })}
@@ -198,27 +214,27 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: t.bg.app }]}>
       {/* Header with time */}
       <View style={styles.header}>
-        <Text style={styles.time}>{formatTime(currentTime, use24Hour)}</Text>
-        {alarmLabel && <Text style={styles.label}>{alarmLabel}</Text>}
+        <Text style={[styles.time, { color: t.text.primary }]}>{formatTime(currentTime, use24Hour)}</Text>
+        {alarmLabel && <Text style={[styles.label, { color: t.text.secondary }]}>{alarmLabel}</Text>}
       </View>
 
       {/* Error Banner */}
       {error && (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorBannerText}>{error}</Text>
+        <View style={[styles.errorBanner, { backgroundColor: t.action.dangerBg }]}>
+          <Text style={[styles.errorBannerText, { color: t.action.dangerText }]}>{error}</Text>
         </View>
       )}
 
       {/* Progress */}
       <View style={styles.progressContainer}>
-        <Text style={styles.progressText}>
+        <Text style={[styles.progressText, { color: t.text.primary }]}>
           Completed {completedTasks} of {requiredTasks} tasks
         </Text>
-        <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${progress}%` }]} />
+        <View style={[styles.progressBar, { backgroundColor: t.border.subtle }]}>
+          <View style={[styles.progressFill, { backgroundColor: t.action.primaryBg, width: `${progress}%` }]} />
         </View>
       </View>
 
@@ -230,16 +246,19 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
       {/* Stop Button */}
       <View style={styles.stopContainer}>
         <TouchableOpacity
-          style={[styles.stopButton, !isStopUnlocked && styles.stopButtonDisabled]}
+          style={[
+            styles.stopButton,
+            { backgroundColor: isStopUnlocked ? t.action.dangerBg : t.text.secondary },
+          ]}
           onPress={handleStop}
           disabled={!isStopUnlocked}
         >
-          <Text style={styles.stopText}>
+          <Text style={[styles.stopText, { color: isStopUnlocked ? t.action.dangerText : t.bg.app }]}>
             {isStopUnlocked ? "STOP ALARM" : "LOCKED"}
           </Text>
         </TouchableOpacity>
         {!isStopUnlocked && (
-          <Text style={styles.lockedText}>
+          <Text style={[styles.lockedText, { color: t.text.secondary }]}>
             Complete all tasks to unlock
           </Text>
         )}

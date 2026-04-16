@@ -1,6 +1,10 @@
 import React from "react";
 import { View } from "react-native";
 
+// Shape colors - use neutral grays that work on both light and dark backgrounds
+const SHAPE_FILL = "#666";
+const SHAPE_STROKE = "#333";
+
 // Simple shape renderers using Views
 const CircleShape = () => (
   <View
@@ -8,7 +12,9 @@ const CircleShape = () => (
       width: 50,
       height: 50,
       borderRadius: 25,
-      backgroundColor: "#fff",
+      backgroundColor: SHAPE_FILL,
+      borderWidth: 2,
+      borderColor: SHAPE_STROKE,
     }}
   />
 );
@@ -19,7 +25,9 @@ const SquareShape = () => (
       width: 50,
       height: 50,
       borderRadius: 4,
-      backgroundColor: "#fff",
+      backgroundColor: SHAPE_FILL,
+      borderWidth: 2,
+      borderColor: SHAPE_STROKE,
     }}
   />
 );
@@ -36,7 +44,7 @@ const TriangleShape = () => (
       borderBottomWidth: 50,
       borderLeftColor: "transparent",
       borderRightColor: "transparent",
-      borderBottomColor: "#fff",
+      borderBottomColor: SHAPE_FILL,
     }}
   />
 );
@@ -55,7 +63,9 @@ const StarShape = () => (
       style={{
         width: 40,
         height: 40,
-        backgroundColor: "#fff",
+        backgroundColor: SHAPE_FILL,
+        borderWidth: 2,
+        borderColor: SHAPE_STROKE,
         transform: [{ rotate: "45deg" }],
         position: "absolute",
       }}
@@ -64,7 +74,9 @@ const StarShape = () => (
       style={{
         width: 40,
         height: 40,
-        backgroundColor: "#fff",
+        backgroundColor: SHAPE_FILL,
+        borderWidth: 2,
+        borderColor: SHAPE_STROKE,
         transform: [{ rotate: "45deg" }],
         position: "absolute",
         marginTop: -10,
@@ -88,7 +100,9 @@ export function renderShape(
             width: 50 * scale,
             height: 50 * scale,
             borderRadius: 25 * scale,
-            backgroundColor: "#fff",
+            backgroundColor: SHAPE_FILL,
+            borderWidth: 2 * scale,
+            borderColor: SHAPE_STROKE,
           }}
         />
       );
@@ -99,7 +113,9 @@ export function renderShape(
             width: 50 * scale,
             height: 50 * scale,
             borderRadius: 4 * scale,
-            backgroundColor: "#fff",
+            backgroundColor: SHAPE_FILL,
+            borderWidth: 2 * scale,
+            borderColor: SHAPE_STROKE,
           }}
         />
       );
@@ -116,7 +132,7 @@ export function renderShape(
             borderBottomWidth: 50 * scale,
             borderLeftColor: "transparent",
             borderRightColor: "transparent",
-            borderBottomColor: "#fff",
+            borderBottomColor: SHAPE_FILL,
           }}
         />
       );
@@ -134,7 +150,9 @@ export function renderShape(
             style={{
               width: 40 * scale,
               height: 40 * scale,
-              backgroundColor: "#fff",
+              backgroundColor: SHAPE_FILL,
+              borderWidth: 2 * scale,
+              borderColor: SHAPE_STROKE,
               transform: [{ rotate: "45deg" }],
               position: "absolute",
             }}
