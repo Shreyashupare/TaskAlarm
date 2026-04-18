@@ -10,9 +10,7 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "test:ci": "jest --passWithNoTests",
-    "precommit:check": "npm run typecheck && npm run test:ci",
-    "prepare": "husky"
+    "test:ci": "jest --passWithNoTests"
   },
   "repository": {
     "type": "git",
