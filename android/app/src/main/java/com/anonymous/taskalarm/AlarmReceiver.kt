@@ -45,7 +45,9 @@ class AlarmReceiver : BroadcastReceiver() {
             }
 
             try {
-                // Start the alarm service for sound and vibration
+                // Start the foreground alarm service - it will show notification and play sound
+                // Note: Android 14+ blocks background activity launches, so we rely on the
+                // notification's fullScreenIntent to show the alarm UI when user interacts
                 val serviceIntent = Intent(context, AlarmService::class.java).apply {
                     action = AlarmService.ACTION_START_ALARM
                     putExtra(AlarmService.EXTRA_ALARM_ID, alarmId)
@@ -60,20 +62,7 @@ class AlarmReceiver : BroadcastReceiver() {
                     context.startService(serviceIntent)
                 }
 
-                // Launch MainActivity with alarm data
-                val activityIntent = Intent(context, MainActivity::class.java).apply {
-                    action = AlarmService.ACTION_START_ALARM
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                            Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                            Intent.FLAG_ACTIVITY_CLEAR_TASK or
-                            Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
-                    putExtra(AlarmService.EXTRA_ALARM_ID, alarmId)
-                    putExtra("from_alarm", true)
-                    putExtra("alarm_triggered", true)
-                }
-                context.startActivity(activityIntent)
-
-                Log.d(TAG, "Alarm activity launched successfully")
+                Log.d(TAG, "Alarm foreground service started successfully")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to launch alarm", e)
             } finally {

@@ -4,6 +4,9 @@ import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.IntentFilter
 import android.util.Log
 
 import com.facebook.react.ReactActivity
@@ -14,6 +17,9 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
 import expo.modules.ReactActivityDelegateWrapper
 
 class MainActivity : ReactActivity() {
+
+  private var alarmReceiver: BroadcastReceiver? = null
+
   override fun onCreate(savedInstanceState: Bundle?) {
     // Set the theme to AppTheme BEFORE onCreate to support
     // coloring the background, status bar, and navigation bar.
@@ -23,11 +29,48 @@ class MainActivity : ReactActivity() {
 
     // Handle alarm intent - wake up screen and show over lock screen
     intent?.let { handleAlarmIntent(it) }
+
+    // Register broadcast receiver for immediate alarm notifications
+    registerAlarmReceiver()
+  }
+
+  private fun registerAlarmReceiver() {
+    alarmReceiver = object : BroadcastReceiver() {
+      override fun onReceive(context: Context?, intent: Intent?) {
+        if (intent?.action == "com.anonymous.taskalarm.ALARM_TRIGGERED") {
+          val alarmId = intent.getStringExtra(AlarmService.EXTRA_ALARM_ID)
+          Log.d("MainActivity", "Received alarm broadcast: $alarmId")
+          if (alarmId != null) {
+            LaunchIntentModule.setPendingAlarm(alarmId, true)
+          }
+        }
+      }
+    }
+    val filter = IntentFilter("com.anonymous.taskalarm.ALARM_TRIGGERED")
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      registerReceiver(alarmReceiver, filter, Context.RECEIVER_EXPORTED)
+    } else {
+      registerReceiver(alarmReceiver, filter)
+    }
+  }
+
+  override fun onDestroy() {
+    super.onDestroy()
+    alarmReceiver?.let { unregisterReceiver(it) }
   }
 
   override fun onNewIntent(intent: Intent) {
     super.onNewIntent(intent)
+    setIntent(intent) // Important: update the intent so getIntent() returns this new intent
     handleAlarmIntent(intent)
+  }
+
+  override fun onResume() {
+    super.onResume()
+    // Re-register receiver if needed
+    if (alarmReceiver == null) {
+      registerAlarmReceiver()
+    }
   }
 
   private fun handleAlarmIntent(intent: Intent?) {

@@ -172,8 +172,8 @@ export async function scheduleAlarm(alarm: Alarm): Promise<void> {
   const vibrationPattern = alarm.vibration ? [0, 500, 500, 500, 500, 500] : [];
 
   const notificationContent: Notifications.NotificationContentInput = {
-    title: alarm.label || "⏰ TaskAlarm",
-    body: "🔔 TAP TO WAKE UP! Complete tasks to stop alarm",
+    title: alarm.label || "TaskAlarm",
+    body: "TAP TO WAKE UP! Complete tasks to stop alarm",
     data: {
       alarmId: alarm.id,
       type: "alarm_trigger",

@@ -71,13 +71,22 @@ class AlarmService : Service() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val audioAttributes = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
+
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 "Alarm Service",
-                NotificationManager.IMPORTANCE_HIGH
+                NotificationManager.IMPORTANCE_MAX  // MAX for lock screen visibility
             ).apply {
                 description = "Keeps alarm running in background"
-                setSound(null, null) // No sound for service notification
+                setSound(null, audioAttributes)
+                vibrationPattern = longArrayOf(0, 1000, 1000, 1000)
+                enableVibration(true)
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+                setBypassDnd(true)  // Show even in Do Not Disturb
             }
             val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel)
@@ -85,15 +94,30 @@ class AlarmService : Service() {
     }
 
     private fun startAlarm(alarmId: String, alarmLabel: String, soundUri: String?, vibration: Boolean) {
+        // Guard: Don't restart if already ringing the same alarm
+        if (currentAlarmId == alarmId && mediaPlayer?.isPlaying == true) {
+            Log.d(TAG, "Alarm $alarmId is already ringing, skipping restart")
+            return
+        }
+
         Log.d(TAG, "Starting alarm: $alarmId - $alarmLabel - vibration: $vibration")
         currentAlarmId = alarmId  // Track current alarm for fallback detection
 
-        // Acquire wake lock to keep CPU alive (10 minutes max)
+        // Acquire wake lock to wake screen and keep CPU alive (10 minutes max)
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-        wakeLock = powerManager.newWakeLock(
-            PowerManager.PARTIAL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP,
-            "TaskAlarm::AlarmWakeLock"
-        ).apply {
+        wakeLock = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            // Android 14+: Use new wake lock types
+            powerManager.newWakeLock(
+                PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                "TaskAlarm::AlarmWakeLock"
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            powerManager.newWakeLock(
+                PowerManager.FULL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.ON_AFTER_RELEASE,
+                "TaskAlarm::AlarmWakeLock"
+            )
+        }.apply {
             acquire(10 * 60 * 1000L) // 10 minutes max
         }
 
@@ -118,36 +142,49 @@ class AlarmService : Service() {
         )
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("⏰ $alarmLabel")
-            .setContentText("🔔 TAP TO WAKE UP! Complete tasks to stop alarm")
+            .setContentTitle("$alarmLabel")
+            .setContentText("TAP TO WAKE UP! Complete tasks to stop alarm")
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setFullScreenIntent(pendingIntent, true)
-            .setOngoing(true)
+            .setOngoing(true)  // Prevents swipe dismissal during alarm
             .setAutoCancel(false)
             .setContentIntent(pendingIntent)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setWhen(System.currentTimeMillis())
+            .setShowWhen(true)
+            .setTicker("ALARM: $alarmLabel")
+            .setVibrate(longArrayOf(0, 1000, 1000, 1000, 1000, 1000))
             .build()
 
         startForeground(NOTIFICATION_ID, notification)
+        Log.d(TAG, "Foreground service started with notification")
 
-        // Launch MainActivity to show alarm ringing screen
-        // This is needed when app is in background or closed
-        try {
-            val launchIntent = Intent(this, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_CLEAR_TASK
-                putExtra(EXTRA_ALARM_ID, alarmId)
-                putExtra("from_alarm", true)
-                putExtra("alarm_triggered", true)
+        // For pre-Android 14, try direct launch (may work on some devices)
+        // Android 14+ blocks this, so we rely on the notification
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            try {
+                val launchIntent = Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                            Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                            Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    putExtra(EXTRA_ALARM_ID, alarmId)
+                    putExtra("from_alarm", true)
+                    putExtra("alarm_triggered", true)
+                }
+                startActivity(launchIntent)
+                Log.d(TAG, "Launched MainActivity directly (pre-Android 14)")
+            } catch (e: Exception) {
+                Log.w(TAG, "Direct launch failed, relying on notification: ${e.message}")
             }
-            startActivity(launchIntent)
-            Log.d(TAG, "Launched MainActivity for alarm")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to launch MainActivity", e)
         }
+
+        // Send broadcast to notify app if it's already running
+        sendBroadcast(Intent("com.anonymous.taskalarm.ALARM_TRIGGERED").apply {
+            putExtra(EXTRA_ALARM_ID, alarmId)
+            putExtra(EXTRA_ALARM_LABEL, alarmLabel)
+        })
 
         // Play alarm sound
         playAlarmSound(soundUri)
@@ -259,6 +296,8 @@ class AlarmService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        stopAlarm()
+        // Don't stop alarm here - service should survive app being swiped away
+        // Alarm only stops when user completes tasks or explicitly dismisses
+        Log.d(TAG, "Service destroyed but alarm continues")
     }
 }

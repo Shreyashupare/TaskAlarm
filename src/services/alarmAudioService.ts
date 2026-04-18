@@ -15,9 +15,11 @@ export function useAlarmAudio() {
   const playerRef = useRef<AudioPlayer | null>(null);
   const isPlayingRef = useRef(false);
 
-  // Cleanup on unmount
+  // Cleanup on unmount - DON'T stop native service
+  // Alarm should continue even if app is swiped away (service has stopWithTask=false)
   useEffect(() => {
     return () => {
+      // Only cleanup expo-audio player, not native service
       if (playerRef.current) {
         try {
           playerRef.current.pause();
@@ -26,10 +28,7 @@ export function useAlarmAudio() {
           // Ignore cleanup errors
         }
       }
-      // Also stop native service
-      if (AlarmServiceModule) {
-        AlarmServiceModule.stopAlarmService?.();
-      }
+      // Native alarm service continues - it survives app swipe
       isPlayingRef.current = false;
     };
   }, []);

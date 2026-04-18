@@ -104,17 +104,24 @@ function AppContent() {
             ringingState.completedTasks, "/", ringingState.requiredTasks);
         }
 
-        // Wait for navigation to be ready then navigate
-        setTimeout(() => {
-          if (DEBUG) console.log("[DEBUG] Timeout fired, checking navigation ready...");
-          if (navigationRef.current?.isReady()) {
-            if (DEBUG) console.log("[DEBUG] Navigating to AlarmRinging with alarmId:", launchAlarmId);
-            navigationRef.current?.navigate("AlarmRinging", { alarmId: launchAlarmId });
-            clearLaunchAlarm(); // Clear after handling
-          } else {
-            if (DEBUG) console.log("[DEBUG] Navigation not ready yet!");
-          }
-        }, 1500);
+        // Navigate immediately - no delay to prevent home screen flash
+        if (navigationRef.current?.isReady()) {
+          if (DEBUG) console.log("[DEBUG] Navigating to AlarmRinging with alarmId:", launchAlarmId);
+          navigationRef.current?.navigate("AlarmRinging", { alarmId: launchAlarmId });
+          clearLaunchAlarm(); // Clear after handling
+        } else {
+          if (DEBUG) console.log("[DEBUG] Navigation not ready, queuing navigation...");
+          // Retry immediately until ready
+          const checkAndNavigate = () => {
+            if (navigationRef.current?.isReady()) {
+              navigationRef.current?.navigate("AlarmRinging", { alarmId: launchAlarmId });
+              clearLaunchAlarm();
+            } else {
+              setTimeout(checkAndNavigate, 50);
+            }
+          };
+          checkAndNavigate();
+        }
         return;
       }
 
@@ -127,12 +134,45 @@ function AppContent() {
         // Start alarm service immediately for sound/vibration
         await launchAlarmFromNotification(alarmId);
 
-        // Wait for navigation to be ready then navigate
-        setTimeout(() => {
-          if (navigationRef.current?.isReady()) {
-            navigationRef.current?.navigate("AlarmRinging", { alarmId });
-          }
-        }, 1000);
+        // Navigate immediately
+        if (navigationRef.current?.isReady()) {
+          navigationRef.current?.navigate("AlarmRinging", { alarmId });
+        } else {
+          const checkAndNavigate = () => {
+            if (navigationRef.current?.isReady()) {
+              navigationRef.current?.navigate("AlarmRinging", { alarmId });
+            } else {
+              setTimeout(checkAndNavigate, 50);
+            }
+          };
+          checkAndNavigate();
+        }
+        return;
+      }
+
+      // Check if we're resuming from persisted ringing state (app was killed while alarm ringing)
+      const ringingState = useRingingStore.getState();
+      if (ringingState.isRinging && ringingState.alarmId) {
+        if (DEBUG) console.log("[DEBUG] Resuming persisted alarm session, alarmId:", ringingState.alarmId,
+          "progress:", ringingState.completedTasks, "/", ringingState.requiredTasks);
+
+        // Check if native alarm service is still running (it should be with stopWithTask=false)
+        // and restart if needed
+        await launchAlarmFromNotification(ringingState.alarmId);
+
+        // Navigate immediately
+        if (navigationRef.current?.isReady()) {
+          navigationRef.current?.navigate("AlarmRinging", { alarmId: ringingState.alarmId! });
+        } else {
+          const checkAndNavigate = () => {
+            if (navigationRef.current?.isReady()) {
+              navigationRef.current?.navigate("AlarmRinging", { alarmId: ringingState.alarmId! });
+            } else {
+              setTimeout(checkAndNavigate, 50);
+            }
+          };
+          checkAndNavigate();
+        }
       }
     }
     if (isReady) {

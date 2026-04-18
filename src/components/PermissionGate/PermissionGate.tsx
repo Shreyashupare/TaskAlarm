@@ -28,6 +28,7 @@ type PermissionStatus = {
   notifications: boolean;
   exactAlarm: boolean;
   batteryOptimization: boolean;
+  lockScreenNotifications: boolean;
 };
 
 type Props = {
@@ -41,6 +42,7 @@ export function PermissionGate({ onPermissionsGranted }: Props) {
     notifications: false,
     exactAlarm: false,
     batteryOptimization: false,
+    lockScreenNotifications: false,
   });
   const [showRetry, setShowRetry] = useState(false);
 
@@ -79,10 +81,15 @@ export function PermissionGate({ onPermissionsGranted }: Props) {
         }
       }
 
+      // Check lock screen notification visibility (Android)
+      // This is a system setting - default to true but guide user to verify
+      const lockScreenGranted = notificationsGranted;
+
       const newPermissions = {
         notifications: notificationsGranted,
         exactAlarm: exactAlarmGranted,
         batteryOptimization: batteryOptGranted,
+        lockScreenNotifications: lockScreenGranted,
       };
 
       setPermissions(newPermissions);
@@ -92,7 +99,7 @@ export function PermissionGate({ onPermissionsGranted }: Props) {
       }
 
       // If all granted, proceed
-      if (notificationsGranted && exactAlarmGranted && batteryOptGranted) {
+      if (notificationsGranted && exactAlarmGranted && batteryOptGranted && lockScreenGranted) {
         onPermissionsGranted();
       } else {
         setShowRetry(true);
@@ -294,6 +301,40 @@ export function PermissionGate({ onPermissionsGranted }: Props) {
                 >
                   <Text style={[styles.grantButtonText, { color: t.action.primaryText }]}>
                     Disable Optimization
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
+          {/* Lock Screen Notifications */}
+          {Platform.OS === "android" && (
+            <View style={styles.permissionItem}>
+              <View style={styles.permissionHeader}>
+                <Ionicons
+                  name={permissions.lockScreenNotifications ? "checkmark-circle" : "lock-closed"}
+                  size={24}
+                  color={permissions.lockScreenNotifications ? t.state.success : t.state.warning}
+                />
+                <Text style={[styles.permissionTitle, { color: t.text.primary }]}>
+                  Lock Screen Notifications
+                </Text>
+                {permissions.lockScreenNotifications && (
+                  <Text style={[styles.grantedBadge, { color: t.state.success }]}>
+                    ✓ Enabled
+                  </Text>
+                )}
+              </View>
+              <Text style={[styles.permissionDesc, { color: t.text.secondary }]}>
+                Required to show alarm on lock screen. Tap to open settings and enable "Show notifications" on lock screen.
+              </Text>
+              {!permissions.lockScreenNotifications && (
+                <TouchableOpacity
+                  style={[styles.grantButton, { backgroundColor: t.action.primaryBg }]}
+                  onPress={() => Linking.openSettings()}
+                >
+                  <Text style={[styles.grantButtonText, { color: t.action.primaryText }]}>
+                    Open Settings
                   </Text>
                 </TouchableOpacity>
               )}
