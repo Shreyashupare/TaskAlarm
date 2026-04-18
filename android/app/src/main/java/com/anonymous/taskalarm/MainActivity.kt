@@ -4,6 +4,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import android.content.Intent
+import android.util.Log
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -30,9 +31,13 @@ class MainActivity : ReactActivity() {
   }
 
   private fun handleAlarmIntent(intent: Intent?) {
+    Log.d("MainActivity", "handleAlarmIntent called with action: ${intent?.action}, extras: ${intent?.extras}")
+
     // Handle alarm wake-up
     if (intent?.action == AlarmService.ACTION_START_ALARM ||
         intent?.hasExtra(AlarmService.EXTRA_ALARM_ID) == true) {
+      Log.d("MainActivity", "Alarm intent detected, waking up screen")
+
       // Wake up the screen
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
         setShowWhenLocked(true)
@@ -44,6 +49,15 @@ class MainActivity : ReactActivity() {
           WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
           WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
         )
+      }
+
+      // Store alarm data for React Native to access
+      val alarmId = intent?.getStringExtra(AlarmService.EXTRA_ALARM_ID)
+      val fromAlarm = intent?.getBooleanExtra("from_alarm", false) == true
+      Log.d("MainActivity", "Storing alarm data - alarmId: $alarmId, fromAlarm: $fromAlarm")
+      if (alarmId != null && fromAlarm) {
+        LaunchIntentModule.setPendingAlarm(alarmId, true)
+        Log.d("MainActivity", "Alarm data stored in LaunchIntentModule")
       }
     }
 

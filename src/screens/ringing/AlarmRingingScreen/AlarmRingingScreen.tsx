@@ -59,53 +59,65 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
   const [orderTapSequence, setOrderTapSequence] = useState<number[]>([]); // For order_tap
   const [expectedOrderSequence, setExpectedOrderSequence] = useState<number[]>([]); // Track expected order
 
-  // Start ringing on mount
+  // Start ringing on mount - check for existing persisted state
   useEffect(() => {
     const alarm = useAlarmStore.getState().alarms.find((a) => a.id === alarmId);
     const settings = useSettingsStore.getState();
 
-    // Always use current settings, not the alarm's saved taskCount
-    const taskCount = settings.defaultTaskCount ?? 5;
-    const taskTypes = settings.defaultTaskTypes ?? ["math"];
+    // Check if we have existing persisted state for this alarm
+    const existingState = useRingingStore.getState();
+    const isResuming = existingState.isRinging && existingState.alarmId === alarmId && existingState.tasks.length > 0;
 
-    // V2.0: Get reflection and custom questions settings
-    const includeReflection = settings.enableReflection ?? true;
-    const includeCustomQuestions = settings.enableCustomQuestions ?? true;
-    const customQuestions = settings.customQuestions ?? [];
+    if (isResuming) {
+      if (DEBUG) console.log("AlarmRingingScreen - Resuming existing alarm session:", alarmId,
+        "progress:", existingState.completedTasks, "/", existingState.requiredTasks);
 
-    // Get alarm sound and vibration settings
-    const soundUri = alarm?.soundUri;
-    const vibration = alarm?.vibration ?? true;
+      // Just restart audio, don't reset progress
+      startLoop(alarmId, alarm?.label, alarm?.soundUri, alarm?.vibration ?? true);
+    } else {
+      // Fresh alarm start - use current settings
+      const taskCount = settings.defaultTaskCount ?? 5;
+      const taskTypes = settings.defaultTaskTypes ?? ["math"];
 
-    if (DEBUG) {
-      console.log("AlarmRingingScreen - settings.defaultTaskCount:", settings.defaultTaskCount);
-      console.log("AlarmRingingScreen - final taskCount:", taskCount);
-      console.log("AlarmRingingScreen - includeReflection:", includeReflection);
-      console.log("AlarmRingingScreen - includeCustomQuestions:", includeCustomQuestions);
-      console.log("AlarmRingingScreen - soundUri:", soundUri);
-      console.log("AlarmRingingScreen - vibration:", vibration);
+      // V2.0: Get reflection and custom questions settings
+      const includeReflection = settings.enableReflection ?? true;
+      const includeCustomQuestions = settings.enableCustomQuestions ?? true;
+      const customQuestions = settings.customQuestions ?? [];
+
+      // Get alarm sound and vibration settings
+      const soundUri = alarm?.soundUri;
+      const vibration = alarm?.vibration ?? true;
+
+      if (DEBUG) {
+        console.log("AlarmRingingScreen - Starting fresh alarm:", alarmId);
+        console.log("AlarmRingingScreen - taskCount:", taskCount);
+        console.log("AlarmRingingScreen - includeReflection:", includeReflection);
+        console.log("AlarmRingingScreen - includeCustomQuestions:", includeCustomQuestions);
+        console.log("AlarmRingingScreen - soundUri:", soundUri);
+        console.log("AlarmRingingScreen - vibration:", vibration);
+      }
+
+      startRinging(alarmId, alarm?.label, taskCount);
+
+      // V2.0: Use enhanced generateTasks with reflection and custom questions
+      const tasks = generateTasks(taskCount, taskTypes, {
+        includeReflection,
+        includeCustomQuestions,
+        customQuestions,
+      });
+      if (DEBUG) console.log("AlarmRingingScreen - generated tasks count:", tasks.length);
+      useRingingStore.setState({ tasks });
+
+      // Start alarm audio with custom sound and vibration settings
+      startLoop(alarmId, alarm?.label, soundUri, vibration);
     }
-
-    startRinging(alarmId, alarm?.label, taskCount);
-
-    // V2.0: Use enhanced generateTasks with reflection and custom questions
-    const tasks = generateTasks(taskCount, taskTypes, {
-      includeReflection,
-      includeCustomQuestions,
-      customQuestions,
-    });
-    if (DEBUG) console.log("AlarmRingingScreen - generated tasks count:", tasks.length);
-    useRingingStore.setState({ tasks });
-
-    // Start alarm audio with custom sound and vibration settings
-    startLoop(alarmId, alarm?.label, soundUri, vibration);
 
     // Prevent back button
     const backHandler = BackHandler.addEventListener("hardwareBackPress", () => true);
 
     return () => {
       backHandler.remove();
-      stop();
+      // Don't stop audio on unmount - let it continue if app is reopened
     };
   }, [alarmId, startRinging, startLoop, stop]);
 
@@ -127,30 +139,50 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
     }
   }, [currentTask?.id]);
 
-  const handleAnswerSubmit = useCallback(async () => {
+  const handleAnswerSubmit = useCallback(async (submittedAnswer?: string) => {
     if (!currentTask) return;
+
+    // DEBUG: Log submission details
+    if (DEBUG) {
+      console.log("[DEBUG] handleAnswerSubmit called:");
+      console.log("[DEBUG] - submittedAnswer param:", JSON.stringify(submittedAnswer));
+      console.log("[DEBUG] - userAnswer state:", JSON.stringify(userAnswer));
+      console.log("[DEBUG] - reflectionText state:", JSON.stringify(reflectionText));
+      console.log("[DEBUG] - currentTask.type:", currentTask.type);
+    }
+
+    // Use submitted answer if provided (for reflection), otherwise use userAnswer state
+    const answerToValidate = submittedAnswer !== undefined ? submittedAnswer : userAnswer;
+
+    if (DEBUG) {
+      console.log("[DEBUG] - answerToValidate:", JSON.stringify(answerToValidate));
+      console.log("[DEBUG] - validateAnswer result:", validateAnswer(currentTask, answerToValidate));
+    }
 
     // V2.0: Save reflection response to database
     if (currentTask.type === "reflection") {
-      if (validateAnswer(currentTask, userAnswer)) {
+      if (validateAnswer(currentTask, answerToValidate)) {
+        if (DEBUG) console.log("[DEBUG] Reflection answer valid, saving...");
         // Save reflection to database
         try {
-          await saveReflection(alarmId, currentTask.question, userAnswer);
+          await saveReflection(alarmId, currentTask.question, answerToValidate);
         } catch (err) {
           console.error("Failed to save reflection:", err);
           // Continue even if save fails - don't block the user
         }
         completeCurrentTask();
         setUserAnswer("");
+        setReflectionText(""); // Clear reflection input
         setError(null);
       } else {
+        if (DEBUG) console.log("[DEBUG] Reflection answer INVALID - showing error");
         setError("Please enter a response");
         setTimeout(() => setError(null), 2000);
       }
       return;
     }
 
-    if (validateAnswer(currentTask, userAnswer)) {
+    if (validateAnswer(currentTask, answerToValidate)) {
       completeCurrentTask();
       setUserAnswer("");
       setError(null);
@@ -160,7 +192,7 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
       // Clear error after 2 seconds
       setTimeout(() => setError(null), 2000);
     }
-  }, [currentTask, userAnswer, completeCurrentTask, alarmId]);
+  }, [currentTask, completeCurrentTask, userAnswer, alarmId]);
 
   const handleOptionPress = useCallback((option: string) => {
     if (!currentTask) return;
@@ -217,8 +249,8 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
               { backgroundColor: reflectionText.trim() ? t.action.primaryBg : t.text.secondary },
             ]}
             onPress={() => {
-              setUserAnswer(reflectionText);
-              handleAnswerSubmit();
+              // Pass reflectionText directly to avoid async state issues
+              handleAnswerSubmit(reflectionText);
             }}
             disabled={!reflectionText.trim()}
           >
@@ -260,7 +292,7 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
               styles.submitButton,
               { backgroundColor: userAnswer.trim() ? t.action.primaryBg : t.text.secondary },
             ]}
-            onPress={handleAnswerSubmit}
+            onPress={() => handleAnswerSubmit()}
             disabled={!userAnswer.trim()}
           >
             <Text style={[styles.submitText, { color: userAnswer.trim() ? t.action.primaryText : t.bg.app }]}>
@@ -437,7 +469,7 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
               styles.submitButton,
               { backgroundColor: userAnswer.trim() ? t.action.primaryBg : t.text.secondary },
             ]}
-            onPress={handleAnswerSubmit}
+            onPress={() => handleAnswerSubmit()}
             disabled={!userAnswer.trim()}
           >
             <Text style={[styles.submitText, { color: userAnswer.trim() ? t.action.primaryText : t.bg.app }]}>

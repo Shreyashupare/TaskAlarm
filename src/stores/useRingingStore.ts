@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { RingingState, RingingActions, Task } from "./types";
 import * as quoteRepository from "../data/repositories/quoteRepository";
 
@@ -16,22 +18,24 @@ const initialState: Omit<RingingState, keyof RingingActions> = {
   isLoadingQuote: false,
 };
 
-export const useRingingStore = create<RingingState & RingingActions>((set, get) => ({
-  ...initialState,
+export const useRingingStore = create<RingingState & RingingActions>()(
+  persist(
+    (set, get) => ({
+      ...initialState,
 
-  startRinging: (alarmId: string, alarmLabel: string | undefined, requiredTasks: number) => {
-    set({
-      isRinging: true,
-      alarmId,
-      alarmLabel: alarmLabel ?? null,
-      requiredTasks,
-      completedTasks: 0,
-      currentTaskIndex: 0,
-      isStopUnlocked: false,
-      quote: null,
-    });
-    get().generateTasks(requiredTasks, "math");
-  },
+      startRinging: (alarmId: string, alarmLabel: string | undefined, requiredTasks: number) => {
+        set({
+          isRinging: true,
+          alarmId,
+          alarmLabel: alarmLabel ?? null,
+          requiredTasks,
+          completedTasks: 0,
+          currentTaskIndex: 0,
+          isStopUnlocked: false,
+          quote: null,
+        });
+        get().generateTasks(requiredTasks, "math");
+      },
 
   generateTasks: (count: number, type: string) => {
     // MVP: Generate simple math tasks
@@ -80,5 +84,22 @@ export const useRingingStore = create<RingingState & RingingActions>((set, get) 
     }
   },
 
-  reset: () => set(initialState),
-}));
+      reset: () => set(initialState),
+    }),
+    {
+      name: "ringing-store",
+      storage: createJSONStorage(() => AsyncStorage),
+      // Only persist these fields
+      partialize: (state) => ({
+        isRinging: state.isRinging,
+        alarmId: state.alarmId,
+        alarmLabel: state.alarmLabel,
+        tasks: state.tasks,
+        currentTaskIndex: state.currentTaskIndex,
+        completedTasks: state.completedTasks,
+        requiredTasks: state.requiredTasks,
+        isStopUnlocked: state.isStopUnlocked,
+      }),
+    }
+  )
+);

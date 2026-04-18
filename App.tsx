@@ -1,14 +1,16 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { StyleSheet, Platform } from "react-native";
+import { StyleSheet, Platform, AppState, AppStateStatus } from "react-native";
 import * as Notifications from "expo-notifications";
 import { createNavigationContainerRef } from "@react-navigation/native";
 
 import RootStack, { RootStackParamList } from "./src/navigation/RootStack";
 import { ThemeProvider } from "./src/theme";
 import { useAlarmStore } from "./src/stores/useAlarmStore";
+import { useRingingStore } from "./src/stores/useRingingStore";
 import { reconcileAlarms, rescheduleAlarm, setupAlarmNotificationChannel, launchAlarmFromNotification } from "./src/services/alarmScheduler";
+import { getLaunchAlarmId, clearLaunchAlarm } from "./src/services/launchIntentService";
 import { initDatabase } from "./src/data/db/sqlite";
 import { seedQuotesIfEmpty } from "./src/data/repositories/quoteRepository";
 import { PermissionGate } from "./src/components/PermissionGate/PermissionGate";
@@ -22,11 +24,18 @@ function AppContent() {
   const { alarms, loadAlarms } = useAlarmStore();
   const [isReady, setIsReady] = useState(false);
   const [permissionsGranted, setPermissionsGranted] = useState(false);
+  const appState = useRef(AppState.currentState);
 
   // Handle alarm trigger - navigate and reschedule repeating alarms
   const handleAlarmTrigger = useCallback(async (alarmId: string) => {
-    // Immediately start alarm service for sound/vibration (even if app was closed)
-    await launchAlarmFromNotification(alarmId);
+    // Check if we're already ringing for this alarm (resuming)
+    const ringingState = useRingingStore.getState();
+    const isResuming = ringingState.isRinging && ringingState.alarmId === alarmId;
+
+    if (!isResuming) {
+      // Only start service if not already ringing
+      await launchAlarmFromNotification(alarmId);
+    }
 
     // Navigate to ringing screen
     navigationRef.current?.navigate("AlarmRinging", { alarmId });
@@ -52,6 +61,16 @@ function AppContent() {
         await initDatabase();
         await seedQuotesIfEmpty();
         await loadAlarms();
+
+        // Check if there's a stale ringing state (from previous app session)
+        // If the app is not being launched from an alarm, clear any old ringing state
+        const launchAlarmId = await getLaunchAlarmId();
+        const ringingState = useRingingStore.getState();
+        if (!launchAlarmId && ringingState.isRinging) {
+          if (DEBUG) console.log("Clearing stale ringing state from previous session");
+          useRingingStore.getState().reset();
+        }
+
         setIsReady(true);
       } catch (err) {
         console.error("Failed to initialize app:", err);
@@ -61,9 +80,45 @@ function AppContent() {
     initialize();
   }, [loadAlarms, permissionsGranted]);
 
-  // Handle app launched from killed state via notification
+  // Handle app launched from killed state via alarm or notification
   useEffect(() => {
-    async function checkInitialNotification() {
+    async function checkInitialLaunch() {
+      if (DEBUG) console.log("[DEBUG] checkInitialLaunch - isReady:", isReady);
+
+      // First check if launched from alarm (via AlarmManager)
+      const launchAlarmId = await getLaunchAlarmId();
+      if (DEBUG) console.log("[DEBUG] getLaunchAlarmId returned:", launchAlarmId);
+
+      if (launchAlarmId) {
+        if (DEBUG) console.log("[DEBUG] App launched from alarm intent, alarmId:", launchAlarmId);
+
+        // Check if we're resuming an existing alarm session
+        const ringingState = useRingingStore.getState();
+        const isResuming = ringingState.isRinging && ringingState.alarmId === launchAlarmId;
+
+        if (!isResuming) {
+          // Fresh alarm - start alarm service
+          await launchAlarmFromNotification(launchAlarmId);
+        } else {
+          if (DEBUG) console.log("Resuming existing alarm session with progress:",
+            ringingState.completedTasks, "/", ringingState.requiredTasks);
+        }
+
+        // Wait for navigation to be ready then navigate
+        setTimeout(() => {
+          if (DEBUG) console.log("[DEBUG] Timeout fired, checking navigation ready...");
+          if (navigationRef.current?.isReady()) {
+            if (DEBUG) console.log("[DEBUG] Navigating to AlarmRinging with alarmId:", launchAlarmId);
+            navigationRef.current?.navigate("AlarmRinging", { alarmId: launchAlarmId });
+            clearLaunchAlarm(); // Clear after handling
+          } else {
+            if (DEBUG) console.log("[DEBUG] Navigation not ready yet!");
+          }
+        }, 1500);
+        return;
+      }
+
+      // Fallback: check if launched from notification
       const response = await Notifications.getLastNotificationResponseAsync();
       if (response?.notification.request.content.data?.alarmId) {
         const alarmId = response.notification.request.content.data.alarmId as string;
@@ -74,14 +129,51 @@ function AppContent() {
 
         // Wait for navigation to be ready then navigate
         setTimeout(() => {
-          navigationRef.current?.navigate("AlarmRinging", { alarmId });
+          if (navigationRef.current?.isReady()) {
+            navigationRef.current?.navigate("AlarmRinging", { alarmId });
+          }
         }, 1000);
       }
     }
     if (isReady) {
-      checkInitialNotification();
+      checkInitialLaunch();
     }
   }, [isReady]);
+
+  // Handle app brought to foreground from alarm (when app was already running)
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", async (nextAppState: AppStateStatus) => {
+      if (appState.current.match(/inactive|background/) && nextAppState === "active") {
+        // App has come to the foreground - check if it was from an alarm
+        if (DEBUG) console.log("[DEBUG] App came to foreground, checking for alarm intent");
+
+        const launchAlarmId = await getLaunchAlarmId();
+        if (DEBUG) console.log("[DEBUG] AppState change - getLaunchAlarmId returned:", launchAlarmId);
+        if (launchAlarmId) {
+          if (DEBUG) console.log("[DEBUG] App resumed from alarm, alarmId:", launchAlarmId);
+
+          // Check if we're resuming an existing alarm session
+          const ringingState = useRingingStore.getState();
+          const isResuming = ringingState.isRinging && ringingState.alarmId === launchAlarmId;
+
+          if (!isResuming) {
+            await launchAlarmFromNotification(launchAlarmId);
+          }
+
+          // Navigate to ringing screen
+          if (navigationRef.current?.isReady()) {
+            navigationRef.current?.navigate("AlarmRinging", { alarmId: launchAlarmId });
+            clearLaunchAlarm();
+          }
+        }
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (isReady && alarms.length > 0) {

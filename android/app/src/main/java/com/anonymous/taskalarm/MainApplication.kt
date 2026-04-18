@@ -28,7 +28,8 @@ class MainApplication : Application(), ReactApplication {
                             return listOf(
                                 AlarmServiceModule(reactContext),
                                 AlarmManagerModule(reactContext),
-                                RingtoneModule(reactContext)
+                                RingtoneModule(reactContext),
+                                LaunchIntentModule(reactContext)
                             )
                         }
                         override fun createViewManagers(reactContext: com.facebook.react.bridge.ReactApplicationContext): List<com.facebook.react.uimanager.ViewManager<*, *>> {

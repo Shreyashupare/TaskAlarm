@@ -35,6 +35,11 @@ class AlarmService : Service() {
         const val EXTRA_ALARM_LABEL = "alarm_label"
         const val EXTRA_SOUND_URI = "sound_uri"
         const val EXTRA_VIBRATION = "vibration"
+
+        // Store current alarm ID for fallback detection
+        @JvmStatic
+        var currentAlarmId: String? = null
+            private set
     }
 
     private var mediaPlayer: MediaPlayer? = null
@@ -81,6 +86,7 @@ class AlarmService : Service() {
 
     private fun startAlarm(alarmId: String, alarmLabel: String, soundUri: String?, vibration: Boolean) {
         Log.d(TAG, "Starting alarm: $alarmId - $alarmLabel - vibration: $vibration")
+        currentAlarmId = alarmId  // Track current alarm for fallback detection
 
         // Acquire wake lock to keep CPU alive (10 minutes max)
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -224,6 +230,7 @@ class AlarmService : Service() {
 
     private fun stopAlarm() {
         Log.d(TAG, "Stopping alarm")
+        currentAlarmId = null  // Clear current alarm tracking
 
         // Stop media player
         mediaPlayer?.apply {
