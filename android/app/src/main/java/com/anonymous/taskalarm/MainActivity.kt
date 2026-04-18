@@ -2,6 +2,8 @@ package com.anonymous.taskalarm
 
 import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
+import android.content.Intent
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -15,8 +17,41 @@ class MainActivity : ReactActivity() {
     // Set the theme to AppTheme BEFORE onCreate to support
     // coloring the background, status bar, and navigation bar.
     // This is required for expo-splash-screen.
-    setTheme(R.style.AppTheme);
-    super.onCreate(null)
+    setTheme(R.style.AppTheme)
+    super.onCreate(savedInstanceState)
+
+    // Handle alarm intent - wake up screen and show over lock screen
+    intent?.let { handleAlarmIntent(it) }
+  }
+
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    handleAlarmIntent(intent)
+  }
+
+  private fun handleAlarmIntent(intent: Intent?) {
+    // Handle alarm wake-up
+    if (intent?.action == AlarmService.ACTION_START_ALARM ||
+        intent?.hasExtra(AlarmService.EXTRA_ALARM_ID) == true) {
+      // Wake up the screen
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+        setShowWhenLocked(true)
+        setTurnScreenOn(true)
+      } else {
+        @Suppress("DEPRECATION")
+        window.addFlags(
+          WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+          WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
+          WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+        )
+      }
+    }
+
+    // Handle reboot - pass to React Native
+    if (intent?.getBooleanExtra("from_reboot", false) == true) {
+      // This will be handled by React Native side
+      // The app will reschedule alarms when it loads
+    }
   }
 
   /**

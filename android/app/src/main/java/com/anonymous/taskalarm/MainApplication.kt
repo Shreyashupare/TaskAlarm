@@ -22,7 +22,15 @@ class MainApplication : Application(), ReactApplication {
         object : DefaultReactNativeHost(this) {
             override fun getPackages(): List<ReactPackage> =
                 PackageList(this).packages.apply {
-                    // Packages that cannot be autolinked yet can be added manually here
+                    // Add custom native modules
+                    add(object : ReactPackage {
+                        override fun createNativeModules(reactContext: com.facebook.react.bridge.ReactApplicationContext): List<com.facebook.react.bridge.NativeModule> {
+                            return listOf(AlarmServiceModule(reactContext))
+                        }
+                        override fun createViewManagers(reactContext: com.facebook.react.bridge.ReactApplicationContext): List<com.facebook.react.uimanager.ViewManager<*, *>> {
+                            return emptyList()
+                        }
+                    })
                 }
 
             override fun getJSMainModuleName(): String = ".expo/.virtual-metro-entry"
