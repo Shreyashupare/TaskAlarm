@@ -8,6 +8,7 @@ node_modules/
 # Build output
 android/.gradle/
 android/app/build/
+android/app/release/
 ios/build/
 
 # Local AI/privacy notes
