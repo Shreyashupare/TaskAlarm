@@ -5,7 +5,7 @@ export const DEBUG = __DEV__; // Only true in development
 
 // Ringtone type
 export type Ringtone = {
-  type: "default" | "notification" | "reminder" | "custom";
+  type: "default" | "notification" | "reminder" | "custom" | "device";
   name: string;
   uri?: string;
 };
@@ -31,6 +31,5 @@ export const DEFAULT_RINGTONE = {
 // Default ringtones using system sounds
 export const DEFAULT_RINGTONES = [
   { type: "default" as const, name: "Default Alarm", uri: undefined },
-  { type: "notification" as const, name: "Notification", uri: undefined },
   { type: "reminder" as const, name: "Reminder", uri: undefined },
 ];

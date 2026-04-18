@@ -51,5 +51,10 @@
         <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
       </intent-filter>
     </receiver>
+    <receiver android:name=".AlarmReceiver" android:enabled="true" android:exported="false">
+      <intent-filter>
+        <action android:name="com.anonymous.taskalarm.ALARM_TRIGGERED"/>
+      </intent-filter>
+    </receiver>
   </application>
 </manifest>

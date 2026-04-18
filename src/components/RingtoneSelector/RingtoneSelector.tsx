@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,16 +7,21 @@ import {
   Modal,
   FlatList,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
-import { AudioPlayer, createAudioPlayer } from "expo-audio";
 import { useThemeTokens } from "../../theme";
-import { DEFAULT_RINGTONES } from "../../constants/AppConstants";
 import { DEBUG } from "../../constants/AppConstants";
+import {
+  getDeviceRingtones,
+  previewRingtone,
+  stopPreview,
+  type DeviceRingtone,
+} from "../../services/ringtoneService";
 
 type Ringtone = {
-  type: "default" | "notification" | "reminder" | "custom";
+  type: "default" | "notification" | "reminder" | "custom" | "device";
   name: string;
   uri?: string;
 };
@@ -37,76 +42,70 @@ export function RingtoneSelector({
   const t = useThemeTokens();
   const [modalVisible, setModalVisible] = useState(false);
   const [previewingRingtone, setPreviewingRingtone] = useState<string | null>(null);
-  const playerRef = useRef<AudioPlayer | null>(null);
+  const [deviceRingtones, setDeviceRingtones] = useState<DeviceRingtone[]>([]);
+  const [isLoadingRingtones, setIsLoadingRingtones] = useState(false);
   const previewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const stopPreview = useCallback(async () => {
+  // Load device ringtones when modal opens
+  useEffect(() => {
+    if (modalVisible) {
+      loadDeviceRingtones();
+    }
+  }, [modalVisible]);
+
+  const loadDeviceRingtones = async () => {
+    setIsLoadingRingtones(true);
+    try {
+      const ringtones = await getDeviceRingtones();
+      setDeviceRingtones(ringtones);
+    } catch (e) {
+      console.error("Failed to load ringtones:", e);
+    } finally {
+      setIsLoadingRingtones(false);
+    }
+  };
+
+  const stopPreviewCallback = useCallback(async () => {
     // Clear any pending timeout
     if (previewTimeoutRef.current) {
       clearTimeout(previewTimeoutRef.current);
       previewTimeoutRef.current = null;
     }
 
-    // Stop and cleanup player
-    if (playerRef.current) {
-      try {
-        await playerRef.current.pause();
-      } catch (e) {
-        // Ignore errors from already released player
-      }
-      try {
-        playerRef.current = null;
-      } catch (e) {
-        // Ignore
-      }
-    }
-
+    // Stop native ringtone preview
+    await stopPreview();
     setPreviewingRingtone(null);
   }, []);
 
   const handlePreview = useCallback(async (ringtone: Ringtone) => {
-    if (DEBUG) console.log("Previewing ringtone:", ringtone.name);
+    if (DEBUG) console.log("Previewing ringtone:", ringtone.name, "URI:", ringtone.uri);
 
     // If already previewing this ringtone, stop it
     if (previewingRingtone === ringtone.name) {
-      await stopPreview();
+      await stopPreviewCallback();
       return;
     }
 
     // Stop any current preview first
-    await stopPreview();
+    await stopPreviewCallback();
 
     // Set new preview state
     setPreviewingRingtone(ringtone.name);
 
     try {
-      // Create new player for this preview
-      // TODO: When we have multiple sound files, map ringtone.type to different files
-      const player = createAudioPlayer(require("../../../assets/sounds/alarm_default.mp3"));
-      player.loop = false;
-      playerRef.current = player;
+      // Use the actual ringtone URI for preview
+      const uriToPlay = ringtone.uri || "default";
+      await previewRingtone(uriToPlay);
 
-      if (ringtone.uri) {
-        // Custom sound - not yet implemented for preview
-        if (DEBUG) console.log("Custom sound preview not yet implemented");
-        // For now, just show visual feedback and stop after delay
-        previewTimeoutRef.current = setTimeout(() => {
-          stopPreview();
-        }, 3000);
-      } else {
-        // Play default sound
-        await player.play();
-
-        // Auto stop after 3 seconds
-        previewTimeoutRef.current = setTimeout(() => {
-          stopPreview();
-        }, 3000);
-      }
+      // Auto stop after 3 seconds
+      previewTimeoutRef.current = setTimeout(() => {
+        stopPreviewCallback();
+      }, 3000);
     } catch (err) {
       console.error("Failed to preview ringtone:", err);
       setPreviewingRingtone(null);
     }
-  }, [previewingRingtone, stopPreview]);
+  }, [previewingRingtone, stopPreviewCallback]);
 
   const handleSelectCustom = async () => {
     try {
@@ -126,7 +125,7 @@ export function RingtoneSelector({
         uri: file.uri,
       };
 
-      stopPreview();
+      await stopPreviewCallback();
       onSelect(customRingtone);
       setModalVisible(false);
     } catch (err) {
@@ -145,7 +144,7 @@ export function RingtoneSelector({
         <TouchableOpacity
           style={styles.ringtoneContent}
           onPress={() => {
-            stopPreview();
+            void stopPreviewCallback();
             onSelect(item);
             setModalVisible(false);
           }}
@@ -172,7 +171,7 @@ export function RingtoneSelector({
             styles.previewButton,
             { backgroundColor: isPreviewing ? t.action.primaryBg : t.action.secondaryBg },
           ]}
-          onPress={() => handlePreview(item)}
+          onPress={() => void handlePreview(item)}
         >
           <Ionicons
             name={isPreviewing ? "stop" : "play"}
@@ -251,7 +250,7 @@ export function RingtoneSelector({
         transparent
         animationType="slide"
         onRequestClose={() => {
-          stopPreview();
+          void stopPreviewCallback();
           setModalVisible(false);
         }}
       >
@@ -261,21 +260,33 @@ export function RingtoneSelector({
               <Text style={[styles.modalTitle, { color: t.text.primary }]}>
                 Select Ringtone
               </Text>
-              <TouchableOpacity onPress={() => { stopPreview(); setModalVisible(false); }}>
+              <TouchableOpacity onPress={() => { void stopPreviewCallback(); setModalVisible(false); }}>
                 <Ionicons name="close" size={24} color={t.text.secondary} />
               </TouchableOpacity>
             </View>
 
-            <FlatList
-              data={[
-                ...DEFAULT_RINGTONES,
-                { type: "custom" as const, name: "Custom Sound", uri: undefined },
-              ]}
-              renderItem={renderRingtoneItem}
-              keyExtractor={(item) => item.name}
-              contentContainerStyle={styles.ringtoneList}
-              showsVerticalScrollIndicator={false}
-            />
+            {isLoadingRingtones ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={t.action.primaryBg} />
+                <Text style={[styles.loadingText, { color: t.text.secondary }]}>
+                  Loading ringtones...
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={[
+                  ...deviceRingtones.map(r => ({
+                    type: r.type as Ringtone["type"],
+                    name: r.name,
+                    uri: r.uri,
+                  })),
+                ]}
+                renderItem={renderRingtoneItem}
+                keyExtractor={(item) => item.name}
+                contentContainerStyle={styles.ringtoneList}
+                showsVerticalScrollIndicator={false}
+              />
+            )}
 
             <TouchableOpacity
               style={[styles.customButton, { backgroundColor: t.action.secondaryBg }]}
@@ -367,6 +378,14 @@ const styles = StyleSheet.create({
   },
   ringtoneList: {
     padding: 16,
+  },
+  loadingContainer: {
+    padding: 32,
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
   },
   ringtoneItem: {
     flexDirection: "row",

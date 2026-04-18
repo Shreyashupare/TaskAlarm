@@ -1,14 +1,41 @@
 import * as Notifications from "expo-notifications";
-import { Platform } from "react-native";
+import { Platform, NativeModules } from "react-native";
 import type { Alarm } from "../constants/types";
 import { DEBUG } from "../constants/AppConstants";
 
-// Android notification channel for alarms
+// Android notification channel for alarms (used for iOS and fallback)
 const ALARM_CHANNEL_ID = "taskalarm-alarms";
+
+// Native module for Android AlarmManager scheduling
+const AlarmManagerModule = Platform.OS === "android" ? NativeModules.AlarmManagerModule : null;
+
+/**
+ * Check if the app can schedule exact alarms (Android 12+)
+ */
+export async function canScheduleExactAlarms(): Promise<boolean> {
+  if (Platform.OS !== "android" || !AlarmManagerModule) return true;
+  try {
+    return await AlarmManagerModule.canScheduleExactAlarms();
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Request exact alarm permission (opens system settings on Android 12+)
+ */
+export async function requestExactAlarmPermission(): Promise<void> {
+  if (Platform.OS !== "android" || !AlarmManagerModule) return;
+  try {
+    await AlarmManagerModule.requestExactAlarmPermission();
+  } catch (e) {
+    console.error("Failed to request exact alarm permission:", e);
+  }
+}
 
 /**
  * Setup Android notification channel for alarms
- * This is required for alarms to play sound in background
+ * This is required for alarms to play sound in background on iOS
  */
 export async function setupAlarmNotificationChannel(): Promise<void> {
   if (Platform.OS !== "android") return;
@@ -28,7 +55,7 @@ export async function setupAlarmNotificationChannel(): Promise<void> {
   if (DEBUG) console.log("Alarm notification channel configured");
 }
 
-// Configure notifications to show when app is in foreground
+// Configure notifications to show when app is in foreground (iOS only)
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -41,13 +68,14 @@ Notifications.setNotificationHandler({
 });
 
 /**
- * Launch alarm ringing screen immediately when notification is received
- * This is called from the notification response handler in App.tsx
+ * Launch alarm ringing screen immediately when alarm is triggered
+ * This is called when alarm fires (from AlarmReceiver on Android)
  */
 export async function launchAlarmFromNotification(alarmId: string): Promise<void> {
   if (DEBUG) console.log("Launching alarm screen for:", alarmId);
-  
-  // On Android, start the foreground service immediately for sound/vibration
+
+  // On Android, the AlarmService is already started by AlarmReceiver
+  // This function is kept for compatibility with iOS if needed
   if (Platform.OS === "android") {
     const { NativeModules } = await import("react-native");
     const AlarmServiceModule = NativeModules.AlarmServiceModule;
@@ -55,7 +83,7 @@ export async function launchAlarmFromNotification(alarmId: string): Promise<void
       try {
         AlarmServiceModule.startAlarmService?.(alarmId, "Alarm", undefined, true);
       } catch (e) {
-        console.log("Failed to start alarm service from notification:", e);
+        console.log("Failed to start alarm service:", e);
       }
     }
   }
@@ -119,78 +147,25 @@ export async function scheduleAlarm(alarm: Alarm): Promise<void> {
     return;
   }
 
-  // Ensure channel is set up before scheduling
-  await setupAlarmNotificationChannel();
-
-  // Determine sound based on alarm settings
-  const soundToUse = alarm.soundType === "default" ? "default" : undefined;
-  const vibrationPattern = alarm.vibration ? [0, 500, 500, 500, 500, 500] : [];
-
-  const notificationContent: Notifications.NotificationContentInput = {
-    title: alarm.label || "⏰ TaskAlarm",
-    body: "🔔 TAP TO WAKE UP! Complete tasks to stop alarm",
-    data: {
-      alarmId: alarm.id,
-      type: "alarm_trigger",
-      soundName: alarm.soundName,
-    },
-    sound: soundToUse,
-    priority: Notifications.AndroidNotificationPriority.HIGH,
-    vibrate: vibrationPattern,
-    // Make notification persistent (ongoing)
-    sticky: true,
-  };
-
-  // Add Android channel for proper alarm behavior
-  if (Platform.OS === "android") {
-    const androidContent = notificationContent as Notifications.NotificationContentInput & {
-      channelId?: string;
-      ongoing?: boolean;
-    };
-    androidContent.channelId = ALARM_CHANNEL_ID;
-    androidContent.ongoing = true; // Can't be dismissed by swiping
+  // On Android, use native AlarmManager for reliable exact alarm scheduling
+  if (Platform.OS === "android" && AlarmManagerModule) {
+    try {
+      await AlarmManagerModule.scheduleAlarm(
+        alarm.id,
+        triggerTime.getTime(),
+        alarm.label,
+        alarm.soundUri,
+        alarm.vibration
+      );
+      if (DEBUG) console.log(`Alarm scheduled via AlarmManager for ${triggerTime.toLocaleString()}`);
+      return;
+    } catch (e) {
+      console.error("Failed to schedule via AlarmManager, falling back to notifications:", e);
+      // Fall through to notification-based scheduling
+    }
   }
 
-  await Notifications.scheduleNotificationAsync({
-    content: notificationContent,
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DATE,
-      date: triggerTime,
-    },
-  });
-
-  if (DEBUG) console.log(`Alarm scheduled for ${triggerTime.toLocaleString()} with sound: ${alarm.soundName}`);
-}
-
-export async function cancelAlarm(alarmId: string): Promise<void> {
-  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-  const toCancel = scheduled.filter(n => n.content.data?.alarmId === alarmId);
-  for (const n of toCancel) {
-    await Notifications.cancelScheduledNotificationAsync(n.identifier);
-  }
-}
-
-/**
- * Reschedule an alarm after it has triggered
- * This is used for repeating alarms to schedule the next occurrence
- */
-export async function rescheduleAlarm(alarm: Alarm): Promise<void> {
-  // For one-time alarms (no weekdays), don't reschedule
-  if (alarm.weekdays.length === 0) {
-    return;
-  }
-
-  // Calculate next trigger from now
-  const now = new Date();
-  const nextTrigger = getNextTriggerTime(alarm, now);
-
-  if (!nextTrigger) {
-    return;
-  }
-
-  // Cancel any existing schedules for this alarm and schedule the next one
-  await cancelAlarm(alarm.id);
-
+  // Fallback: Use expo-notifications for iOS or if AlarmManager fails
   await setupAlarmNotificationChannel();
 
   const soundToUse = alarm.soundType === "default" ? "default" : undefined;
@@ -223,9 +198,45 @@ export async function rescheduleAlarm(alarm: Alarm): Promise<void> {
     content: notificationContent,
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DATE,
-      date: nextTrigger,
+      date: triggerTime,
     },
   });
+
+  if (DEBUG) console.log(`Alarm scheduled via notifications for ${triggerTime.toLocaleString()}`);
+}
+
+export async function cancelAlarm(alarmId: string): Promise<void> {
+  // Cancel via AlarmManager on Android
+  if (Platform.OS === "android" && AlarmManagerModule) {
+    try {
+      await AlarmManagerModule.cancelAlarm(alarmId);
+    } catch (e) {
+      console.error("Failed to cancel alarm via AlarmManager:", e);
+    }
+  }
+
+  // Also cancel any expo-notifications (for fallback/iOS)
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  const toCancel = scheduled.filter(n => n.content.data?.alarmId === alarmId);
+  for (const n of toCancel) {
+    await Notifications.cancelScheduledNotificationAsync(n.identifier);
+  }
+}
+
+/**
+ * Reschedule an alarm after it has triggered
+ * This is used for repeating alarms to schedule the next occurrence
+ */
+export async function rescheduleAlarm(alarm: Alarm): Promise<void> {
+  // For one-time alarms (no weekdays), don't reschedule
+  if (alarm.weekdays.length === 0) {
+    return;
+  }
+
+  // Simply call scheduleAlarm which will calculate next trigger and schedule it
+  await scheduleAlarm(alarm);
+
+  if (DEBUG) console.log(`Alarm rescheduled: ${alarm.id}`);
 }
 
 export async function reconcileAlarms(alarms: Alarm[]): Promise<void> {

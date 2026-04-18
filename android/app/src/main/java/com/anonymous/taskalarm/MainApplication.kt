@@ -25,7 +25,11 @@ class MainApplication : Application(), ReactApplication {
                     // Add custom native modules
                     add(object : ReactPackage {
                         override fun createNativeModules(reactContext: com.facebook.react.bridge.ReactApplicationContext): List<com.facebook.react.bridge.NativeModule> {
-                            return listOf(AlarmServiceModule(reactContext))
+                            return listOf(
+                                AlarmServiceModule(reactContext),
+                                AlarmManagerModule(reactContext),
+                                RingtoneModule(reactContext)
+                            )
                         }
                         override fun createViewManagers(reactContext: com.facebook.react.bridge.ReactApplicationContext): List<com.facebook.react.uimanager.ViewManager<*, *>> {
                             return emptyList()
