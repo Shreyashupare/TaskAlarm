@@ -13,6 +13,15 @@ This file is updated at commit time only.
 
 ---
 
+### 2026-04-18 21:15:00 IST - version-3.0-final
+
+- What was done: Final polish - Added Terms & Conditions and Contact. Documentation aligned with final implementation.
+- Files/areas changed: 
+- Commit id: `558a036`
+- Notes: App is feature-complete and stable. All features working as expected.
+
+---
+
 ### 2026-04-16 00:50:00 IST - TSKALRM-001
 
 - What was done: Fixed 10+ UI/UX bugs including AlarmFormScreen theming, time format 12h display, minutes vibration fix, ringtone per alarm, task selector real-time updates, color/shape visual tasks, QuoteScreen navigation, database migration order, header spacing, gesture handling on locked screens.

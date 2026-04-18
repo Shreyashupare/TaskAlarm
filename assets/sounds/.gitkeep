@@ -1,8 +1,0 @@
-# Alarm sounds directory
-
-Add your alarm sound files here:
-- alarm_default.mp3 - Default alarm sound
-- alarm_digital.mp3 - Digital/beeping alarm
-- alarm_gentle.mp3 - Gentle melody alarm
-
-These will be bundled with the app and played when alarms trigger.

@@ -1,6 +1,6 @@
 {
   "name": "taskalarm",
-  "version": "2.4.0",
+  "version": "3.0",
   "description": "`TaskAlarm` is a simple alarm app that requires short tasks before stop is unlocked.",
   "main": "index.js",
   "scripts": {

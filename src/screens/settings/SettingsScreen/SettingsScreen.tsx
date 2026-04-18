@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Modal,
   Pressable,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -23,7 +24,7 @@ import type { RootStackParamList } from "../../../navigation/RootStack";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-type ModalType = "theme" | "timeFormat" | "taskType" | "snooze" | "reflectionInfo" | null;
+type ModalType = "theme" | "timeFormat" | "taskType" | "snooze" | "reflectionInfo" | "terms" | null;
 
 export default function SettingsScreen() {
   const t = useThemeTokens();
@@ -85,6 +86,14 @@ export default function SettingsScreen() {
         case "reflectionInfo":
           return {
             title: "About Reflection",
+            options: [],
+            selected: "",
+            autoClose: true,
+            onSelect: () => {},
+          };
+        case "terms":
+          return {
+            title: "Terms & Conditions",
             options: [],
             selected: "",
             autoClose: true,
@@ -174,6 +183,24 @@ export default function SettingsScreen() {
               <View style={{ padding: 20 }}>
                 <Text style={[styles.optionLabel, { color: t.text.primary, lineHeight: 22 }]}>
                   Reflection is an open-ended question that appears as your final task. It helps you start the day with mindfulness. Any response is accepted and saved to your reflection history.
+                </Text>
+              </View>
+            ) : activeModal === "terms" ? (
+              <View style={{ padding: 20 }}>
+                <Text style={[styles.optionLabel, { color: t.text.primary, lineHeight: 24, marginBottom: 12 }]}>
+                  1. Usage: TaskAlarm is provided as-is for personal use to help wake up on time.
+                </Text>
+                <Text style={[styles.optionLabel, { color: t.text.primary, lineHeight: 24, marginBottom: 12 }]}>
+                  2. Privacy: All data is stored locally on your device. No personal data is collected or shared.
+                </Text>
+                <Text style={[styles.optionLabel, { color: t.text.primary, lineHeight: 24, marginBottom: 12 }]}>
+                  3. Reliability: While we strive for reliability, alarms may not trigger due to system restrictions or battery optimization settings.
+                </Text>
+                <Text style={[styles.optionLabel, { color: t.text.primary, lineHeight: 24, marginBottom: 12 }]}>
+                  4. Modifications: Terms may be updated with app updates. Continued use constitutes acceptance.
+                </Text>
+                <Text style={[styles.optionLabel, { color: t.text.primary, lineHeight: 24 }]}>
+                  5. Liability: The developer is not liable for missed alarms or any consequences thereof.
                 </Text>
               </View>
             ) : (
@@ -445,12 +472,50 @@ export default function SettingsScreen() {
           <View
             style={[styles.card, { backgroundColor: t.bg.surface }]}
           >
+            <TouchableOpacity
+              style={[styles.row, { borderBottomColor: t.border.subtle, borderBottomWidth: 1 }]}
+              onPress={() => setActiveModal("terms")}
+            >
+              <Text style={[styles.rowLabel, { color: t.text.primary }]}>
+                Terms & Conditions
+              </Text>
+              <View style={styles.rowRight}>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={t.icon.secondary}
+                />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.row, { borderBottomColor: t.border.subtle, borderBottomWidth: 1 }]}
+              onPress={() => Linking.openURL("https://www.linkedin.com/in/shreyas-hupare")}
+            >
+              <Text style={[styles.rowLabel, { color: t.text.primary }]}>
+                Contact Developer
+              </Text>
+              <View style={styles.rowRight}>
+                <Ionicons
+                  name="open-outline"
+                  size={18}
+                  color={t.icon.secondary}
+                  style={{ marginRight: 4 }}
+                />
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={t.icon.secondary}
+                />
+              </View>
+            </TouchableOpacity>
+
             <View style={styles.row}>
               <Text style={[styles.rowLabel, { color: t.text.primary }]}>
                 Version
               </Text>
               <Text style={[styles.rowValue, { color: t.text.secondary }]}>
-                2.0.0
+                3.0
               </Text>
             </View>
           </View>

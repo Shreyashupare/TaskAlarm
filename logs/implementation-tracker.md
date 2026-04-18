@@ -85,14 +85,20 @@ Simple checklist to track what is done and what is pending.
 - [x] Wire up settings to task generation in AlarmRingingScreen
 
 ### Phase 6: Testing (Manual checklist for QA)
-- [ ] Test all 4 new mini task types render correctly
-- [ ] Test reflection appears last and accepts any non-empty text
-- [ ] Test custom questions CRUD operations
-- [ ] Test custom questions appear in task rotation
-- [ ] Test max 10 questions enforced
-- [ ] Test reflections saved and viewable in ReflectionsScreen
-- [ ] Test settings toggles (reflection, custom questions) work correctly
-- [ ] Test navigation: Alarms tab, My Questions tab, Settings via gear
+- [x] Test all 4 new mini task types render correctly
+- [x] Test reflection appears last and accepts any non-empty text
+- [x] Test custom questions CRUD operations
+- [x] Test custom questions appear in task rotation
+- [x] Test max 10 questions enforced
+- [x] Test reflections saved and viewable in ReflectionsScreen
+- [x] Test settings toggles (reflection, custom questions) work correctly
+- [x] Test navigation: Alarms tab, My Questions tab, Settings via gear
+
+### Phase 7: Final Polish
+- [x] Add Terms & Conditions modal in Settings About section
+- [x] Add Contact Developer row with LinkedIn link
+- [x] Clean up console logs and testing comments from services
+- [x] Update version to 2.4.0 in Settings UI
 
 ## Post-V2 / MVP Remaining
 

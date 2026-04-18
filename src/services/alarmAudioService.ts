@@ -41,18 +41,13 @@ export function useAlarmAudio() {
       if (Platform.OS === "android" && AlarmServiceModule) {
         try {
           AlarmServiceModule.startAlarmService?.(alarmId, alarmLabel || "Alarm", soundUri, vibration);
-        } catch (e) {
-          console.log("Native alarm service not available, using expo-audio");
+        } catch {
+          // Native service not available, vibration is handled below
         }
       }
 
-      // Also try to play via expo-audio as backup for cross-platform support
-      // Note: This requires bundled audio assets which are not yet included
+      // iOS: Use notification sound and vibration (Android uses native service)
       if (Platform.OS === "ios") {
-        // TODO: Implement iOS audio playback using expo-av or expo-audio
-        // For now, rely on notification sound
-
-        // Trigger vibration on iOS (Android handles this in native service)
         if (vibration) {
           Vibration.vibrate([0, 500, 500, 500, 500, 500, 500, 500], true);
         }

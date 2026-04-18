@@ -46,7 +46,6 @@ export async function getDeviceRingtones(): Promise<DeviceRingtone[]> {
  */
 export async function previewRingtone(uri: string): Promise<void> {
   if (Platform.OS !== "android" || !RingtoneModule) {
-    console.log("Ringtone preview not available on this platform");
     return;
   }
 
