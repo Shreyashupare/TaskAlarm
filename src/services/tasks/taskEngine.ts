@@ -209,10 +209,18 @@ function generateCountObjectsTask(index: number): Task {
     isTarget: true,
   }));
 
+  // Distractors must NOT match target color+shape combination
+  const distractorColors = colorKeys.filter(k => k !== targetColorKey);
+  const distractorShapes = shapes.filter(s => s !== targetShape);
+
   const distractors = Array(distractorCount).fill(null).map(() => ({
     type: "count_item" as const,
-    shape: shapes[Math.floor(Math.random() * shapes.length)],
-    color: colorNames[colorKeys[Math.floor(Math.random() * colorKeys.length)]],
+    shape: distractorShapes.length > 0
+      ? distractorShapes[Math.floor(Math.random() * distractorShapes.length)]
+      : shapes[Math.floor(Math.random() * shapes.length)],
+    color: distractorColors.length > 0
+      ? colorNames[distractorColors[Math.floor(Math.random() * distractorColors.length)]]
+      : colorNames[colorKeys[Math.floor(Math.random() * colorKeys.length)]],
     isTarget: false,
   }));
 
@@ -254,6 +262,7 @@ function safeGenerateTask(type: TaskType, index: number, attempt: number = 0): T
   try {
     let taskType = type;
     if (type === "mixed") {
+      // All V2.0 mini tasks now available
       const types: TaskType[] = ["math", "color", "shape", "icon_match", "position_tap", "order_tap", "count_objects"];
       taskType = types[Math.floor(Math.random() * types.length)];
     }
@@ -288,7 +297,7 @@ function safeGenerateTask(type: TaskType, index: number, attempt: number = 0): T
 
 /**
  * Map AlarmTaskType to supported TaskType
- * V2.0: All task types now implemented
+ * V2.0: All mini tasks now implemented
  */
 function mapTaskType(alarmTaskType: AlarmTaskType): TaskType {
   switch (alarmTaskType) {

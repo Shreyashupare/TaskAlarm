@@ -13,7 +13,7 @@ export const TASK_TYPE_OPTIONS: { value: AlarmTaskType; label: string }[] = [
   { value: "mixed", label: "All Types" },
 ];
 
-// V2.0: Extended task type options including 4 new mini tasks
+// V2.0: All task types including mini tasks
 export const TASK_TYPE_OPTIONS_V2: { value: AlarmTaskType; label: string }[] = [
   { value: "math", label: "Math" },
   { value: "color", label: "Color Match" },

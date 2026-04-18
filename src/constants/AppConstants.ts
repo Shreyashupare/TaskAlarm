@@ -3,6 +3,13 @@ import type { AlarmTaskType } from "./types";
 // Debug flag - set to false for production builds
 export const DEBUG = __DEV__; // Only true in development
 
+// Ringtone type
+export type Ringtone = {
+  type: "default" | "notification" | "reminder" | "custom";
+  name: string;
+  uri?: string;
+};
+
 // Task count limits
 export const MIN_TASK_COUNT = 3;
 export const MAX_TASK_COUNT = 12;
@@ -20,3 +27,10 @@ export const DEFAULT_RINGTONE = {
   name: "Default",
   uri: undefined as string | undefined,
 };
+
+// Default ringtones using system sounds
+export const DEFAULT_RINGTONES = [
+  { type: "default" as const, name: "Default Alarm", uri: undefined },
+  { type: "notification" as const, name: "Notification", uri: undefined },
+  { type: "reminder" as const, name: "Reminder", uri: undefined },
+];

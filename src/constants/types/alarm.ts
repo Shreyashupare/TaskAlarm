@@ -14,7 +14,7 @@ export type Alarm = {
   weekdays: number[]; // 0-6, empty means one-time
   enabled: boolean;
   label?: string;
-  soundType: "default" | "custom";
+  soundType: "default" | "custom" | "notification" | "reminder";
   soundName: string;
   soundUri?: string;
   vibration: boolean;

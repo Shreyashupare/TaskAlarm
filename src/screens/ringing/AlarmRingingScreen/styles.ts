@@ -184,4 +184,88 @@ export const styles = StyleSheet.create({
   objectItem: {
     margin: 4,
   },
+
+  // V2.0: Icon Match task styles
+  iconGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 12,
+    marginBottom: 20,
+  },
+  iconButton: {
+    width: 70,
+    height: 70,
+    borderRadius: 12,
+    backgroundColor: "rgba(128,128,128,0.1)",
+    borderWidth: 2,
+    borderColor: "rgba(128,128,128,0.3)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconButtonSelected: {
+    backgroundColor: "#e3f2fd",
+    borderColor: "#1976d2",
+  },
+  iconText: {
+    fontSize: 32,
+  },
+  iconSubmitButton: {
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    backgroundColor: "#1976d2",
+  },
+
+  // V2.0: Position Tap task styles
+  positionGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 8,
+    marginBottom: 20,
+    width: 200,
+    alignSelf: "center",
+  },
+  positionBox: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "rgba(128,128,128,0.3)",
+  },
+
+  // V2.0: Order Tap task styles
+  orderGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 12,
+    marginBottom: 20,
+  },
+  orderItem: {
+    width: 70,
+    height: 70,
+    borderRadius: 12,
+    backgroundColor: "rgba(128,128,128,0.1)",
+    borderWidth: 2,
+    borderColor: "rgba(128,128,128,0.3)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  orderItemTapped: {
+    backgroundColor: "#e3f2fd",
+    borderColor: "#1976d2",
+  },
+  orderNumber: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#1976d2",
+  },
+  orderInstruction: {
+    fontSize: 14,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 12,
+  },
 });

@@ -7,7 +7,6 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
   },
   header: {
     flexDirection: "row",
@@ -15,14 +14,11 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#1a1a1a",
   },
   backButton: {
     padding: 8,
@@ -41,7 +37,6 @@ export const styles = StyleSheet.create({
   dateHeader: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#666666",
     marginBottom: 12,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -49,7 +44,6 @@ export const styles = StyleSheet.create({
 
   // Reflection Card
   reflectionCard: {
-    backgroundColor: "#ffffff",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -62,17 +56,14 @@ export const styles = StyleSheet.create({
   questionText: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#1976d2",
     marginBottom: 8,
   },
   responseText: {
     fontSize: 16,
-    color: "#1a1a1a",
     lineHeight: 22,
   },
   timeText: {
     fontSize: 12,
-    color: "#999999",
     marginTop: 8,
   },
 
@@ -87,19 +78,16 @@ export const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 18,
     fontWeight: "500",
-    color: "#666666",
     marginTop: 16,
   },
   emptyStateSubtext: {
     fontSize: 14,
-    color: "#999999",
     marginTop: 8,
     textAlign: "center",
   },
 
   // Stats
   statsContainer: {
-    backgroundColor: "#ffffff",
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -112,11 +100,9 @@ export const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#1976d2",
   },
   statLabel: {
     fontSize: 12,
-    color: "#666666",
     marginTop: 4,
   },
 });

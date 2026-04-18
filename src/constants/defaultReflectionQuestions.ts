@@ -30,9 +30,12 @@ export type ReflectionQuestion = typeof DEFAULT_REFLECTION_QUESTIONS[number];
 
 /**
  * Get a reflection question based on index (rotates through the list)
+ * Or get a random question if no index provided
  */
-export function getReflectionQuestion(index: number): ReflectionQuestion {
-  return DEFAULT_REFLECTION_QUESTIONS[index % DEFAULT_REFLECTION_QUESTIONS.length];
+export function getReflectionQuestion(index?: number): ReflectionQuestion {
+  // Use random question for variety
+  const randomIndex = Math.floor(Math.random() * DEFAULT_REFLECTION_QUESTIONS.length);
+  return DEFAULT_REFLECTION_QUESTIONS[randomIndex];
 }
 
 /**

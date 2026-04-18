@@ -17,8 +17,10 @@ import { useAlarmStore } from "../../../stores/useAlarmStore";
 import { useSettingsStore } from "../../../stores/useSettingsStore";
 import { scheduleAlarm } from "../../../services/alarmScheduler";
 import { AppButton, AppSwitch, TopHeader } from "../../../components/ui";
+import { RingtoneSelector } from "../../../components/RingtoneSelector";
 import type { Alarm } from "../../../constants/types";
 import { WEEKDAYS } from "./helpers/constants";
+import { DEFAULT_RINGTONES, type Ringtone } from "../../../constants/AppConstants";
 import { generateId, formatTwoDigit } from "./helpers/utils";
 import { styles } from "./styles";
 
@@ -36,10 +38,17 @@ export default function AlarmFormScreen({ route, navigation }: Props) {
   const [weekdays, setWeekdays] = useState<number[]>([1, 2, 3, 4, 5]);
   const [label, setLabel] = useState("");
   const [vibration, setVibration] = useState(true);
-  const [soundType, setSoundType] = useState<"default" | "custom">("default");
+  const [soundType, setSoundType] = useState<Ringtone["type"]>("default");
   const [soundName, setSoundName] = useState("Default");
   const [soundUri, setSoundUri] = useState<string | undefined>(undefined);
   const [taskCount, setTaskCount] = useState(defaultTaskCount ?? 4);
+
+  // Current ringtone object
+  const selectedRingtone: Ringtone = {
+    type: soundType,
+    name: soundName,
+    uri: soundUri,
+  };
 
   useEffect(() => {
     loadAlarms();
@@ -269,56 +278,21 @@ export default function AlarmFormScreen({ route, navigation }: Props) {
           />
         </View>
 
-        {/* Vibration */}
+        {/* Ringtone with Vibration */}
         <View style={[styles.section, { backgroundColor: t.bg.surface }]}>
-          <View style={styles.switchRow}>
-            <Text style={[styles.sectionTitle, { color: t.text.primary }]}>
-              Vibration
-            </Text>
-            <AppSwitch value={vibration} onValueChange={setVibration} />
-          </View>
-        </View>
-
-        {/* Ringtone */}
-        <View style={[styles.section, { backgroundColor: t.bg.surface }]}>
-          <Text style={[styles.sectionTitle, { color: t.text.secondary }]}>
-            Ringtone
+          <Text style={[styles.sectionTitle, { color: t.text.secondary, marginBottom: 12 }]}>
+            Sound & Vibration
           </Text>
-          <TouchableOpacity
-            style={styles.row}
-            onPress={async () => {
-              const { getDocumentAsync } = await import("expo-document-picker");
-              const result = await getDocumentAsync({
-                type: "audio/*",
-                copyToCacheDirectory: true,
-              });
-              if (!result.canceled && result.assets?.[0]) {
-                const file = result.assets[0];
-                setSoundType("custom");
-                setSoundName(file.name);
-                setSoundUri(file.uri);
-              }
+          <RingtoneSelector
+            selectedRingtone={selectedRingtone}
+            onSelect={(ringtone) => {
+              setSoundType(ringtone.type);
+              setSoundName(ringtone.name);
+              setSoundUri(ringtone.uri);
             }}
-          >
-            <Text style={[styles.rowLabel, { color: t.text.primary }]}>
-              {soundType === "default" ? "Default" : soundName}
-            </Text>
-            <Ionicons name="chevron-forward" size={20} color={t.icon.secondary} />
-          </TouchableOpacity>
-          {soundType !== "default" && (
-            <TouchableOpacity
-              style={[styles.resetButton, { marginTop: 12 }]}
-              onPress={() => {
-                setSoundType("default");
-                setSoundName("Default");
-                setSoundUri(undefined);
-              }}
-            >
-              <Text style={{ color: t.action.primaryBg, fontSize: 14 }}>
-                Reset to Default
-              </Text>
-            </TouchableOpacity>
-          )}
+            vibration={vibration}
+            onVibrationChange={setVibration}
+          />
         </View>
 
         <View style={styles.spacer} />

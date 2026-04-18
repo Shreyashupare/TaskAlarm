@@ -18,6 +18,7 @@ import {
   type Reflection,
 } from "../../../data/repositories/reflectionRepository";
 import type { RootStackParamList } from "../../../navigation/RootStack";
+import { useThemeTokens } from "../../../theme";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -60,6 +61,7 @@ function formatTime(timestamp: number): string {
 }
 
 export default function ReflectionsScreen() {
+  const t = useThemeTokens();
   const navigation = useNavigation<NavigationProp>();
   const [groupedReflections, setGroupedReflections] = useState<GroupedReflections[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -86,16 +88,16 @@ export default function ReflectionsScreen() {
   }, [loadReflections]);
 
   const renderReflectionCard = (reflection: Reflection) => (
-    <View key={reflection.id} style={styles.reflectionCard}>
-      <Text style={styles.questionText}>{reflection.question}</Text>
-      <Text style={styles.responseText}>{reflection.response}</Text>
-      <Text style={styles.timeText}>{formatTime(reflection.createdAt)}</Text>
+    <View key={reflection.id} style={[styles.reflectionCard, { backgroundColor: t.bg.surface }]}>
+      <Text style={[styles.questionText, { color: t.action.primaryBg }]}>{reflection.question}</Text>
+      <Text style={[styles.responseText, { color: t.text.primary }]}>{reflection.response}</Text>
+      <Text style={[styles.timeText, { color: t.text.secondary }]}>{formatTime(reflection.createdAt)}</Text>
     </View>
   );
 
   const renderDateSection = (group: GroupedReflections) => (
     <View key={group.date} style={styles.dateSection}>
-      <Text style={styles.dateHeader}>{formatDate(group.date)}</Text>
+      <Text style={[styles.dateHeader, { color: t.text.secondary }]}>{formatDate(group.date)}</Text>
       {group.reflections.map(renderReflectionCard)}
     </View>
   );
@@ -103,8 +105,8 @@ export default function ReflectionsScreen() {
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <Text style={{ fontSize: 48 }}>📝</Text>
-      <Text style={styles.emptyStateText}>No Reflections Yet</Text>
-      <Text style={styles.emptyStateSubtext}>
+      <Text style={[styles.emptyStateText, { color: t.text.secondary }]}>No Reflections Yet</Text>
+      <Text style={[styles.emptyStateSubtext, { color: t.text.secondary }]}>
         Your morning reflections will appear here after you complete alarms with reflection tasks enabled.
       </Text>
     </View>
@@ -114,27 +116,27 @@ export default function ReflectionsScreen() {
     const uniqueDays = groupedReflections.length;
 
     return (
-      <View style={styles.statsContainer}>
+      <View style={[styles.statsContainer, { backgroundColor: t.bg.surface }]}>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{totalCount}</Text>
-          <Text style={styles.statLabel}>Total</Text>
+          <Text style={[styles.statValue, { color: t.action.primaryBg }]}>{totalCount}</Text>
+          <Text style={[styles.statLabel, { color: t.text.secondary }]}>Total</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{uniqueDays}</Text>
-          <Text style={styles.statLabel}>Days</Text>
+          <Text style={[styles.statValue, { color: t.action.primaryBg }]}>{uniqueDays}</Text>
+          <Text style={[styles.statLabel, { color: t.text.secondary }]}>Days</Text>
         </View>
       </View>
     );
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: t.bg.app }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: t.bg.surface, borderBottomColor: t.border.default }]}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+          <Ionicons name="arrow-back" size={24} color={t.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Reflections</Text>
+        <Text style={[styles.headerTitle, { color: t.text.primary }]}>Reflections</Text>
         <View style={styles.placeholder} />
       </View>
 

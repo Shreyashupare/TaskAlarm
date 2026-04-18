@@ -54,6 +54,11 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
   // V2.0: State for reflection text input
   const [reflectionText, setReflectionText] = useState("");
 
+  // V2.0: State for mini tasks
+  const [selectedIcons, setSelectedIcons] = useState<Set<number>>(new Set()); // For icon_match
+  const [orderTapSequence, setOrderTapSequence] = useState<number[]>([]); // For order_tap
+  const [expectedOrderSequence, setExpectedOrderSequence] = useState<number[]>([]); // Track expected order
+
   // Start ringing on mount
   useEffect(() => {
     const alarm = useAlarmStore.getState().alarms.find((a) => a.id === alarmId);
@@ -68,11 +73,17 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
     const includeCustomQuestions = settings.enableCustomQuestions ?? true;
     const customQuestions = settings.customQuestions ?? [];
 
+    // Get alarm sound and vibration settings
+    const soundUri = alarm?.soundUri;
+    const vibration = alarm?.vibration ?? true;
+
     if (DEBUG) {
       console.log("AlarmRingingScreen - settings.defaultTaskCount:", settings.defaultTaskCount);
       console.log("AlarmRingingScreen - final taskCount:", taskCount);
       console.log("AlarmRingingScreen - includeReflection:", includeReflection);
       console.log("AlarmRingingScreen - includeCustomQuestions:", includeCustomQuestions);
+      console.log("AlarmRingingScreen - soundUri:", soundUri);
+      console.log("AlarmRingingScreen - vibration:", vibration);
     }
 
     startRinging(alarmId, alarm?.label, taskCount);
@@ -86,7 +97,8 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
     if (DEBUG) console.log("AlarmRingingScreen - generated tasks count:", tasks.length);
     useRingingStore.setState({ tasks });
 
-    startLoop();
+    // Start alarm audio with custom sound and vibration settings
+    startLoop(alarmId, alarm?.label, soundUri, vibration);
 
     // Prevent back button
     const backHandler = BackHandler.addEventListener("hardwareBackPress", () => true);
@@ -102,6 +114,18 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
     const interval = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Reset mini task state when task changes
+  useEffect(() => {
+    setSelectedIcons(new Set());
+    setOrderTapSequence([]);
+    // Build expected sequence for order_tap task
+    if (currentTask?.type === "order_tap" && currentTask.visualData) {
+      const items = currentTask.visualData as Array<{ number: number }>;
+      const expected = items.map((_, i) => i + 1).sort((a, b) => a - b);
+      setExpectedOrderSequence(expected);
+    }
+  }, [currentTask?.id]);
 
   const handleAnswerSubmit = useCallback(async () => {
     if (!currentTask) return;
@@ -243,6 +267,154 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
               Submit
             </Text>
           </TouchableOpacity>
+        </View>
+      );
+    }
+
+    // V2.0: Icon Match Task - Tap all matching icons
+    if (currentTask.type === "icon_match") {
+      const targetName = currentTask.answer as string;
+      const visualItems = currentTask.visualData as Array<{ icon: string; name: string }> || [];
+      const targetCount = visualItems.filter(item => item.name === targetName).length;
+      const selectedCount = selectedIcons.size;
+
+      const handleIconPress = (index: number) => {
+        const newSelected = new Set(selectedIcons);
+        if (newSelected.has(index)) {
+          newSelected.delete(index);
+        } else {
+          newSelected.add(index);
+        }
+        setSelectedIcons(newSelected);
+      };
+
+      const handleIconSubmit = () => {
+        // Check if all selected icons are correct matches
+        const selectedArray = Array.from(selectedIcons);
+        const allCorrect = selectedArray.every(idx => visualItems[idx]?.name === targetName);
+        const allTargetsSelected = selectedArray.length === targetCount && allCorrect;
+
+        if (allTargetsSelected) {
+          completeCurrentTask();
+          setSelectedIcons(new Set());
+        } else {
+          setError("Keep looking! Tap all matching icons");
+          setTimeout(() => setError(null), 2000);
+        }
+      };
+
+      return (
+        <View style={[styles.taskCard, { backgroundColor: t.bg.surfaceElevated }]}>
+          <Text style={[styles.taskQuestion, { color: t.text.primary }]}>{currentTask.question}</Text>
+          <Text style={[styles.orderInstruction, { color: t.text.secondary }]}>
+            Found: {selectedCount}/{targetCount}
+          </Text>
+          <View style={styles.iconGrid}>
+            {visualItems.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.iconButton,
+                  selectedIcons.has(index) && styles.iconButtonSelected,
+                ]}
+                onPress={() => handleIconPress(index)}
+              >
+                <Text style={styles.iconText}>{item.icon}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <TouchableOpacity
+            style={[
+              styles.iconSubmitButton,
+              { backgroundColor: selectedCount === targetCount ? t.action.primaryBg : t.border.default },
+            ]}
+            onPress={handleIconSubmit}
+            disabled={selectedCount !== targetCount}
+          >
+            <Text style={[styles.submitText, { color: selectedCount === targetCount ? t.action.primaryText : t.bg.app }]}>
+              Submit
+            </Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    // V2.0: Position Tap Task - Tap the colored box at specific position
+    if (currentTask.type === "position_tap") {
+      const visualItems = currentTask.visualData as Array<{ color: string; isTarget: boolean }> || [];
+
+      const handlePositionPress = (index: number) => {
+        const item = visualItems[index];
+        if (item?.isTarget) {
+          completeCurrentTask();
+        } else {
+          setError("Wrong box! Try again");
+          setTimeout(() => setError(null), 1500);
+        }
+      };
+
+      return (
+        <View style={[styles.taskCard, { backgroundColor: t.bg.surfaceElevated }]}>
+          <Text style={[styles.taskQuestion, { color: t.text.primary }]}>{currentTask.question}</Text>
+          <View style={styles.positionGrid}>
+            {visualItems.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[styles.positionBox, { backgroundColor: item.color }]
+                }
+                onPress={() => handlePositionPress(index)}
+              />
+            ))}
+          </View>
+        </View>
+      );
+    }
+
+    // V2.0: Order Tap Task - Tap items in sequence (1, 2, 3...)
+    if (currentTask.type === "order_tap") {
+      const visualItems = currentTask.visualData as Array<{ number: number; shape: string; color: string }> || [];
+      const expectedNext = orderTapSequence.length + 1;
+
+      const handleOrderPress = (itemNumber: number) => {
+        if (itemNumber === expectedNext) {
+          const newSequence = [...orderTapSequence, itemNumber];
+          setOrderTapSequence(newSequence);
+
+          // Check if sequence is complete
+          if (newSequence.length === visualItems.length) {
+            completeCurrentTask();
+            setOrderTapSequence([]);
+          }
+        } else {
+          setError(`Wrong order! Tap number ${expectedNext} next`);
+          setTimeout(() => setError(null), 1500);
+        }
+      };
+
+      return (
+        <View style={[styles.taskCard, { backgroundColor: t.bg.surfaceElevated }]}>
+          <Text style={[styles.taskQuestion, { color: t.text.primary }]}>{currentTask.question}</Text>
+          <Text style={[styles.orderInstruction, { color: t.text.secondary }]}>
+            Progress: {orderTapSequence.length}/{visualItems.length}
+          </Text>
+          <View style={styles.orderGrid}>
+            {visualItems.map((item, index) => {
+              const isTapped = orderTapSequence.includes(item.number);
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.orderItem,
+                    isTapped && styles.orderItemTapped,
+                  ]}
+                  onPress={() => !isTapped && handleOrderPress(item.number)}
+                  disabled={isTapped}
+                >
+                  <Text style={styles.iconText}>{item.number}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
       );
     }

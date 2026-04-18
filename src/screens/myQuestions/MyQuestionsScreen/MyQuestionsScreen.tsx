@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "./styles";
 import { useSettingsStore } from "../../../stores/useSettingsStore";
+import { useThemeTokens } from "../../../theme";
 import type { CustomQuestion } from "../../../constants/types";
 import {
   MAX_QUESTIONS,
@@ -39,6 +40,7 @@ import {
  */
 
 export default function MyQuestionsScreen() {
+  const t = useThemeTokens();
   const { customQuestions, updateCustomQuestions } = useSettingsStore();
   const [editingQuestion, setEditingQuestion] = useState<CustomQuestion | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -192,20 +194,20 @@ export default function MyQuestionsScreen() {
   // Render question item
   const renderQuestionItem = useCallback(
     ({ item }: { item: CustomQuestion }) => (
-      <View style={styles.questionCard}>
-        <Text style={styles.questionText}>{truncateQuestion(item.question)}</Text>
-        <View style={styles.optionBadge}>
-          <Text style={styles.optionBadgeText}>{getOptionCountLabel(item.options.length)}</Text>
+      <View style={[styles.questionCard, { backgroundColor: t.bg.surface }]}>
+        <Text style={[styles.questionText, { color: t.text.primary }]}>{truncateQuestion(item.question)}</Text>
+        <View style={[styles.optionBadge, { backgroundColor: t.action.primaryBg + "20" }]}>
+          <Text style={[styles.optionBadgeText, { color: t.action.primaryBg }]}>{getOptionCountLabel(item.options.length)}</Text>
         </View>
         <View style={styles.actionButtons}>
           <TouchableOpacity
-            style={[styles.actionButton, styles.editButton]}
+            style={[styles.actionButton, { backgroundColor: t.action.primaryBg + "15" }]}
             onPress={() => handleEdit(item)}
           >
             <Text>✏️</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.actionButton, styles.deleteButton]}
+            style={[styles.actionButton, { backgroundColor: t.action.dangerBg + "15" }]}
             onPress={() => handleDelete(item.id)}
           >
             <Text>🗑️</Text>
@@ -213,26 +215,26 @@ export default function MyQuestionsScreen() {
         </View>
       </View>
     ),
-    [handleEdit, handleDelete]
+    [handleEdit, handleDelete, t]
   );
 
   // Empty state
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <Text style={{ fontSize: 48 }}>❓</Text>
-      <Text style={styles.emptyStateText}>No Questions Yet</Text>
-      <Text style={styles.emptyStateSubtext}>
+      <Text style={[styles.emptyStateText, { color: t.text.secondary }]}>No Questions Yet</Text>
+      <Text style={[styles.emptyStateSubtext, { color: t.text.secondary }]}>
         Tap the + button to add your first custom question. These will appear in your alarm tasks.
       </Text>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: t.bg.app }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Questions</Text>
-        <Text style={styles.questionCount}>
+      <View style={[styles.header, { backgroundColor: t.bg.surface, borderBottomColor: t.border.default }]}>
+        <Text style={[styles.headerTitle, { color: t.text.primary }]}>My Questions</Text>
+        <Text style={[styles.questionCount, { color: t.text.secondary }]}>
           {questions.length}/{MAX_QUESTIONS}
         </Text>
       </View>
@@ -251,25 +253,25 @@ export default function MyQuestionsScreen() {
 
       {/* FAB */}
       <TouchableOpacity
-        style={[styles.fab, !canAddMore && styles.fabDisabled]}
+        style={[styles.fab, { backgroundColor: canAddMore ? t.action.primaryBg : t.border.default }]}
         onPress={handleAdd}
         disabled={!canAddMore}
       >
-        <Text style={styles.fabText}>+</Text>
+        <Text style={[styles.fabText, { color: t.action.primaryText }]}>+</Text>
       </TouchableOpacity>
 
       {/* Edit Modal */}
       <Modal visible={isModalVisible} animationType="fade" transparent onRequestClose={handleCancel}>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: t.bg.surface }]}>
             <ScrollView>
               {/* Modal Header */}
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>
+              <View style={[styles.modalHeader, { borderBottomColor: t.border.default }]}>
+                <Text style={[styles.modalTitle, { color: t.text.primary }]}>
                   {originalQuestion ? "Edit Question" : "New Question"}
                 </Text>
                 <TouchableOpacity onPress={handleCancel}>
-                  <Text style={{ fontSize: 24 }}>✕</Text>
+                  <Text style={{ fontSize: 24, color: t.text.primary }}>✕</Text>
                 </TouchableOpacity>
               </View>
 
@@ -278,12 +280,11 @@ export default function MyQuestionsScreen() {
                 <View style={styles.modalBody}>
                   {/* Question Input */}
                   <View style={styles.formLabelRow}>
-                    <Text style={styles.formLabel}>Question</Text>
+                    <Text style={[styles.formLabel, { color: t.text.primary }]}>Question</Text>
                     <Text
                       style={[
                         styles.charCounter,
-                        editingQuestion.question.length > MAX_QUESTION_LENGTH * 0.8 &&
-                          styles.charCounterWarning,
+                        { color: editingQuestion.question.length > MAX_QUESTION_LENGTH * 0.8 ? t.state.warning : t.text.secondary },
                       ]}
                     >
                       {editingQuestion.question.length}/{MAX_QUESTION_LENGTH}
@@ -292,17 +293,22 @@ export default function MyQuestionsScreen() {
                   <TextInput
                     style={[
                       styles.input,
-                      editingQuestion.question.length > MAX_QUESTION_LENGTH && styles.inputError,
+                      {
+                        color: t.text.primary,
+                        backgroundColor: t.bg.app,
+                        borderColor: editingQuestion.question.length > MAX_QUESTION_LENGTH ? t.action.dangerBg : t.border.default,
+                      },
                     ]}
                     value={editingQuestion.question}
                     onChangeText={updateQuestionText}
                     placeholder="Enter your question..."
+                    placeholderTextColor={t.text.secondary}
                     multiline
                     maxLength={MAX_QUESTION_LENGTH}
                     autoFocus
                   />
                   {editingQuestion.question.length > MAX_QUESTION_LENGTH && (
-                    <Text style={styles.errorText}>
+                    <Text style={[styles.errorText, { color: t.action.dangerBg }]}>
                       Maximum {MAX_QUESTION_LENGTH} characters
                     </Text>
                   )}
@@ -310,8 +316,8 @@ export default function MyQuestionsScreen() {
                   {/* Options Section */}
                   <View style={styles.optionsSection}>
                     <View style={styles.formLabelRow}>
-                      <Text style={styles.formLabel}>Options</Text>
-                      <Text style={styles.charCounter}>
+                      <Text style={[styles.formLabel, { color: t.text.primary }]}>Options</Text>
+                      <Text style={[styles.charCounter, { color: t.text.secondary }]}>
                         {editingQuestion.options.length}/{MAX_OPTIONS}
                       </Text>
                     </View>
@@ -321,11 +327,16 @@ export default function MyQuestionsScreen() {
                         <TextInput
                           style={[
                             styles.optionInput,
-                            option.length > MAX_OPTION_LENGTH && styles.inputError,
+                            {
+                              color: t.text.primary,
+                              backgroundColor: t.bg.app,
+                              borderColor: option.length > MAX_OPTION_LENGTH ? t.state.error : t.border.default,
+                            },
                           ]}
                           value={option}
                           onChangeText={(text) => updateOption(index, text)}
                           placeholder={`Option ${index + 1}`}
+                          placeholderTextColor={t.text.secondary}
                           maxLength={MAX_OPTION_LENGTH}
                         />
                         {editingQuestion.options.length > MIN_OPTIONS && (
@@ -333,22 +344,25 @@ export default function MyQuestionsScreen() {
                             style={styles.optionRemoveButton}
                             onPress={() => removeOption(index)}
                           >
-                            <Text style={styles.optionRemoveText}>✕</Text>
+                            <Text style={[styles.optionRemoveText, { color: t.state.error }]}>✕</Text>
                           </TouchableOpacity>
                         )}
                       </View>
                     ))}
 
                     {editingQuestion.options.length < MAX_OPTIONS && (
-                      <TouchableOpacity style={styles.addOptionButton} onPress={addOption}>
-                        <Text style={styles.addOptionText}>+ Add Option</Text>
+                      <TouchableOpacity
+                        style={[styles.addOptionButton, { borderColor: t.action.primaryBg }]}
+                        onPress={addOption}
+                      >
+                        <Text style={[styles.addOptionText, { color: t.action.primaryBg }]}>+ Add Option</Text>
                       </TouchableOpacity>
                     )}
                   </View>
 
                   {/* Correct Answer Section */}
                   <View style={styles.correctAnswerSection}>
-                    <Text style={styles.formLabel}>Correct Answer</Text>
+                    <Text style={[styles.formLabel, { color: t.text.primary }]}>Correct Answer</Text>
                     <View style={styles.chipsContainer}>
                       {editingQuestion.options
                         .filter((o) => o.trim().length > 0)
@@ -359,14 +373,17 @@ export default function MyQuestionsScreen() {
                               key={`${option}_${index}`}
                               style={[
                                 styles.correctAnswerChip,
-                                isSelected && styles.correctAnswerChipSelected,
+                                {
+                                  backgroundColor: isSelected ? t.action.primaryBg + "20" : t.bg.app,
+                                  borderColor: isSelected ? t.action.primaryBg : t.border.default,
+                                },
                               ]}
                               onPress={() => setCorrectAnswer(option)}
                             >
                               <Text
                                 style={[
                                   styles.correctAnswerChipText,
-                                  isSelected && styles.correctAnswerChipTextSelected,
+                                  { color: isSelected ? t.action.primaryBg : t.text.secondary },
                                 ]}
                               >
                                 {truncateQuestion(option, 20)}
@@ -380,19 +397,19 @@ export default function MyQuestionsScreen() {
               )}
 
               {/* Modal Actions */}
-              <View style={styles.modalActions}>
+              <View style={[styles.modalActions, { borderTopColor: t.border.default }]}>
                 <TouchableOpacity
-                  style={[styles.button, styles.buttonSecondary]}
+                  style={[styles.button, { backgroundColor: t.bg.app }]}
                   onPress={handleCancel}
                 >
-                  <Text style={[styles.buttonText, styles.buttonTextSecondary]}>Cancel</Text>
+                  <Text style={[styles.buttonText, { color: t.text.secondary }]}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.button, styles.buttonPrimary, !isFormValid && styles.buttonPrimaryDisabled]}
+                  style={[styles.button, { backgroundColor: isFormValid ? t.action.primaryBg : t.border.default }]}
                   onPress={handleSave}
                   disabled={!isFormValid}
                 >
-                  <Text style={[styles.buttonText, styles.buttonTextPrimary]}>Save</Text>
+                  <Text style={[styles.buttonText, { color: isFormValid ? t.action.primaryText : t.text.secondary }]}>Save</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>

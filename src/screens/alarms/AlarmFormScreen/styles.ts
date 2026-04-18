@@ -143,4 +143,56 @@ export const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 32,
   },
+
+  // Ringtone Modal Styles
+  ringtoneModal: {
+    marginTop: 12,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  modalSubtitle: {
+    fontSize: 12,
+    marginBottom: 12,
+  },
+  ringtoneRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
+  ringtoneOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  ringtoneText: {
+    fontSize: 14,
+  },
+  playButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  closeModalBtn: {
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 8,
+  },
 });
