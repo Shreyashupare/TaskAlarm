@@ -245,7 +245,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: t.bg.app }]}>
-      <TopHeader title="Settings" />
+      <TopHeader title="Settings" onBack={() => navigation.goBack()} />
 
       <ScrollView style={styles.scroll}>
         {/* Appearance */}
