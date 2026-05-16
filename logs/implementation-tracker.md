@@ -102,10 +102,11 @@ Simple checklist to track what is done and what is pending.
 
 ## V4.0 Features - Night Guide & Reflection Extension
 
-**Status:** Spec clarified 2026-05-16 — **do not implement until confirmed.**  
 **Order:** Phase 2 (motivational) before Phase 3+ (Night Guide). See `docs/specs/09-version4.0.md`.
 
-### Phase 1: Core Types & Storage
+### Phase 1: Core Types & Storage (partial — motivational settings only)
+- [x] Settings migration: enable_motivational_sentences, enable_text_to_speech
+- [x] defaultMotivationalSentences.ts + AppConstants delay/count
 - [ ] Create NightGuide type in src/constants/types/
 - [ ] Create NightGuideTask, NightGuideOccurrence types
 - [ ] Create nightGuideRepository.ts (CRUD + setNightGuideEnabled weekday conflict)
@@ -115,13 +116,15 @@ Simple checklist to track what is done and what is pending.
 - [ ] IST date helpers + grace deadline (09:00 IST)
 
 ### Phase 2: Motivational Sentences Component (ship first)
-- [ ] Create MotivationalSentencesReader component
-- [ ] Implement sequential sentence display logic
-- [ ] Implement 2.5 s delay between sentences
-- [ ] Implement "mark as read" click handler
-- [ ] Integrate text-to-speech using expo-speech
-- [ ] Integrate into AlarmRingingScreen (requires enableReflection + enableMotivationalSentences)
-- [ ] Random 3–5 sentence count
+- [x] Create MotivationalSentencesReader component
+- [x] Implement sequential sentence display logic
+- [x] Implement 2.5 s delay between sentences
+- [x] Implement "mark as read" click handler
+- [x] Integrate text-to-speech using expo-speech
+- [x] Integrate into AlarmRingingScreen (requires enableReflection + enableMotivationalSentences)
+- [x] Random 3–5 sentence count
+- [x] Settings toggles (motivational sentences + TTS)
+- [x] `NIGHT_GUIDE_TITLE` in `src/constants/nightGuideConstants.ts`
 
 ### Phase 3: Night Guide Scheduling
 - [ ] Create nightGuideScheduler.ts + reconcileNightGuides on launch

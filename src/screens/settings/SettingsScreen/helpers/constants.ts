@@ -34,3 +34,6 @@ export const TIME_FORMAT_OPTIONS: { value: "12h" | "24h"; label: string }[] = [
   { value: "12h", label: "12-hour (AM/PM)" },
   { value: "24h", label: "24-hour" },
 ];
+
+export const MOTIVATIONAL_SENTENCES_LABEL = "Read Out Loud (after reflection)";
+export const TEXT_TO_SPEECH_LABEL = "Text-to-speech for Read Out Loud";

@@ -18,6 +18,8 @@ export const useSettingsStore = create<SettingsState & SettingsActions>((set, ge
   ringtoneName: DEFAULT_RINGTONE.name,
   ringtoneUri: DEFAULT_RINGTONE.uri,
   enableReflection: true,
+  enableMotivationalSentences: true,
+  enableTextToSpeech: false,
   customQuestions: [],
   enableCustomQuestions: true,
   isLoading: false,
@@ -98,10 +100,41 @@ export const useSettingsStore = create<SettingsState & SettingsActions>((set, ge
 
   updateEnableReflection: async (enabled: boolean) => {
     try {
-      await settingsRepository.updateSettings({ enableReflection: enabled });
-      set({ enableReflection: enabled });
+      const patch: Parameters<typeof settingsRepository.updateSettings>[0] = {
+        enableReflection: enabled,
+      };
+      if (!enabled) {
+        patch.enableMotivationalSentences = false;
+      }
+      await settingsRepository.updateSettings(patch);
+      set({
+        enableReflection: enabled,
+        ...(!enabled ? { enableMotivationalSentences: false } : {}),
+      });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : "Failed to update reflection setting" });
+    }
+  },
+
+  updateEnableMotivationalSentences: async (enabled: boolean) => {
+    const { enableReflection } = get();
+    if (enabled && !enableReflection) return;
+    try {
+      await settingsRepository.updateSettings({ enableMotivationalSentences: enabled });
+      set({ enableMotivationalSentences: enabled });
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : "Failed to update motivational sentences setting",
+      });
+    }
+  },
+
+  updateEnableTextToSpeech: async (enabled: boolean) => {
+    try {
+      await settingsRepository.updateSettings({ enableTextToSpeech: enabled });
+      set({ enableTextToSpeech: enabled });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : "Failed to update text-to-speech setting" });
     }
   },
 

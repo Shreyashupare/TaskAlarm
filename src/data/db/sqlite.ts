@@ -148,6 +148,17 @@ export async function initDatabase(): Promise<void> {
       );
     }
 
+    if (!columns.includes("enable_motivational_sentences")) {
+      await database.execAsync(
+        "ALTER TABLE settings ADD COLUMN enable_motivational_sentences INTEGER NOT NULL DEFAULT 1"
+      );
+    }
+    if (!columns.includes("enable_text_to_speech")) {
+      await database.execAsync(
+        "ALTER TABLE settings ADD COLUMN enable_text_to_speech INTEGER NOT NULL DEFAULT 0"
+      );
+    }
+
     // Create reflections table for V2.0
     await database.execAsync(`
       CREATE TABLE IF NOT EXISTS reflections (

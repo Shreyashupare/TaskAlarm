@@ -24,6 +24,8 @@ import { styles } from "./styles";
 import { formatTime } from "./helpers/utils";
 import { renderShape } from "./helpers/shapes";
 import { saveReflection } from "../../../data/repositories/reflectionRepository";
+import { getRandomMotivationalSentences } from "../../../constants/defaultMotivationalSentences";
+import MotivationalSentencesReader from "../../../components/motivationalSentences/MotivationalSentencesReader/MotivationalSentencesReader";
 
 type Props = NativeStackScreenProps<RootStackParamList, "AlarmRinging">;
 
@@ -33,7 +35,8 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [userAnswer, setUserAnswer] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const { timeFormat } = useSettingsStore();
+  const { timeFormat, enableReflection, enableMotivationalSentences, enableTextToSpeech } =
+    useSettingsStore();
   const use24Hour = timeFormat === "24h";
   const t = useThemeTokens();
 
@@ -53,6 +56,8 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
 
   // V2.0: State for reflection text input
   const [reflectionText, setReflectionText] = useState("");
+  const [showMotivationalSentences, setShowMotivationalSentences] = useState(false);
+  const [motivationalSentences, setMotivationalSentences] = useState<string[]>([]);
 
   // V2.0: State for mini tasks
   const [selectedIcons, setSelectedIcons] = useState<Set<number>>(new Set()); // For icon_match
@@ -163,16 +168,26 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
     if (currentTask.type === "reflection") {
       if (validateAnswer(currentTask, answerToValidate)) {
         if (DEBUG) console.log("[DEBUG] Reflection answer valid, saving...");
-        // Save reflection to database
         try {
           await saveReflection(alarmId, currentTask.question, answerToValidate);
         } catch (err) {
           console.error("Failed to save reflection:", err);
-          // Continue even if save fails - don't block the user
         }
+
+        const showMotivational =
+          enableReflection && enableMotivationalSentences;
+
+        if (showMotivational) {
+          setMotivationalSentences(getRandomMotivationalSentences());
+          setShowMotivationalSentences(true);
+          setReflectionText("");
+          setError(null);
+          return;
+        }
+
         completeCurrentTask();
         setUserAnswer("");
-        setReflectionText(""); // Clear reflection input
+        setReflectionText("");
         setError(null);
       } else {
         if (DEBUG) console.log("[DEBUG] Reflection answer INVALID - showing error");
@@ -192,7 +207,20 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
       // Clear error after 2 seconds
       setTimeout(() => setError(null), 2000);
     }
-  }, [currentTask, completeCurrentTask, userAnswer, alarmId]);
+  }, [
+    currentTask,
+    completeCurrentTask,
+    userAnswer,
+    alarmId,
+    enableReflection,
+    enableMotivationalSentences,
+  ]);
+
+  const handleMotivationalSentencesComplete = useCallback(() => {
+    setShowMotivationalSentences(false);
+    setMotivationalSentences([]);
+    completeCurrentTask();
+  }, [completeCurrentTask]);
 
   const handleOptionPress = useCallback((option: string) => {
     if (!currentTask) return;
@@ -219,6 +247,16 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
   const progress = requiredTasks > 0 ? (completedTasks / requiredTasks) * 100 : 0;
 
   const renderTaskContent = () => {
+    if (showMotivationalSentences) {
+      return (
+        <MotivationalSentencesReader
+          sentences={motivationalSentences}
+          onComplete={handleMotivationalSentencesComplete}
+          enableTextToSpeech={enableTextToSpeech}
+        />
+      );
+    }
+
     if (!currentTask) {
       return (
         <View style={[styles.taskCard, { backgroundColor: t.bg.surfaceElevated }]}>
@@ -573,7 +611,7 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
             {isStopUnlocked ? "STOP ALARM" : "LOCKED"}
           </Text>
         </TouchableOpacity>
-        {!isStopUnlocked && (
+        {!isStopUnlocked && !showMotivationalSentences && (
           <Text style={[styles.lockedText, { color: t.text.secondary }]}>
             Complete all tasks to unlock
           </Text>

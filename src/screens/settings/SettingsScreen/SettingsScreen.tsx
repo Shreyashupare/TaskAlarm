@@ -17,7 +17,15 @@ import { TopHeader } from "../../../components/ui";
 import type { ThemePreference, AlarmTaskType, TimeFormat } from "../../../constants/types";
 import { MIN_TASK_COUNT, MAX_TASK_COUNT } from "../../../constants/AppConstants";
 import { styles } from "./styles";
-import { THEME_OPTIONS, TASK_TYPE_OPTIONS, SNOOZE_OPTIONS, TIME_FORMAT_OPTIONS, TASK_TYPE_OPTIONS_V2 } from "./helpers/constants";
+import {
+  THEME_OPTIONS,
+  TASK_TYPE_OPTIONS,
+  SNOOZE_OPTIONS,
+  TIME_FORMAT_OPTIONS,
+  TASK_TYPE_OPTIONS_V2,
+  MOTIVATIONAL_SENTENCES_LABEL,
+  TEXT_TO_SPEECH_LABEL,
+} from "./helpers/constants";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../../navigation/RootStack";
@@ -40,6 +48,8 @@ export default function SettingsScreen() {
     minTaskCount,
     maxTaskCount,
     enableReflection,
+    enableMotivationalSentences,
+    enableTextToSpeech,
     enableCustomQuestions,
     customQuestions,
     loadSettings,
@@ -48,6 +58,8 @@ export default function SettingsScreen() {
     updateDefaultTaskCount,
     updateDefaultTaskTypes,
     updateEnableReflection,
+    updateEnableMotivationalSentences,
+    updateEnableTextToSpeech,
     updateEnableCustomQuestions,
   } = useSettingsStore();
 
@@ -412,6 +424,83 @@ export default function SettingsScreen() {
                     {
                       backgroundColor: "#fff",
                       transform: [{ translateX: enableReflection ? 20 : 0 }],
+                    },
+                  ]}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <View style={[styles.row, { borderBottomColor: t.border.subtle, borderBottomWidth: 1 }]}>
+              <Text
+                style={[
+                  styles.rowLabel,
+                  { color: enableReflection ? t.text.primary : t.text.secondary },
+                ]}
+              >
+                {MOTIVATIONAL_SENTENCES_LABEL}
+              </Text>
+              <TouchableOpacity
+                onPress={() => updateEnableMotivationalSentences(!enableMotivationalSentences)}
+                disabled={!enableReflection}
+                style={[
+                  styles.toggle,
+                  {
+                    backgroundColor:
+                      enableReflection && enableMotivationalSentences
+                        ? t.action.primaryBg
+                        : t.border.default,
+                    opacity: enableReflection ? 1 : 0.5,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.toggleKnob,
+                    {
+                      backgroundColor: "#fff",
+                      transform: [{ translateX: enableMotivationalSentences && enableReflection ? 20 : 0 }],
+                    },
+                  ]}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <View style={[styles.row, { borderBottomColor: t.border.subtle, borderBottomWidth: 1 }]}>
+              <Text
+                style={[
+                  styles.rowLabel,
+                  { color: enableMotivationalSentences && enableReflection ? t.text.primary : t.text.secondary },
+                ]}
+              >
+                {TEXT_TO_SPEECH_LABEL}
+              </Text>
+              <TouchableOpacity
+                onPress={() => updateEnableTextToSpeech(!enableTextToSpeech)}
+                disabled={!enableReflection || !enableMotivationalSentences}
+                style={[
+                  styles.toggle,
+                  {
+                    backgroundColor:
+                      enableReflection && enableMotivationalSentences && enableTextToSpeech
+                        ? t.action.primaryBg
+                        : t.border.default,
+                    opacity: enableReflection && enableMotivationalSentences ? 1 : 0.5,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.toggleKnob,
+                    {
+                      backgroundColor: "#fff",
+                      transform: [
+                        {
+                          translateX:
+                            enableTextToSpeech && enableReflection && enableMotivationalSentences
+                              ? 20
+                              : 0,
+                        },
+                      ],
                     },
                   ]}
                 />

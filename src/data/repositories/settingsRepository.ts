@@ -14,6 +14,8 @@ type SettingsRow = {
   ringtone_name: string;
   ringtone_uri?: string;
   enable_reflection: number;
+  enable_motivational_sentences: number;
+  enable_text_to_speech: number;
   enable_custom_questions: number;
   custom_questions: string;
 };
@@ -21,7 +23,7 @@ type SettingsRow = {
 export async function getSettings(): Promise<AppSettings> {
   const db = await openDatabase();
   const row = await db.getFirstAsync<SettingsRow>(
-    "SELECT theme, time_format, default_task_count, default_task_types, snooze_policy, snooze_interval, snooze_max_count, ringtone_type, ringtone_name, ringtone_uri, enable_reflection, enable_custom_questions, custom_questions FROM settings WHERE id = 1"
+    "SELECT theme, time_format, default_task_count, default_task_types, snooze_policy, snooze_interval, snooze_max_count, ringtone_type, ringtone_name, ringtone_uri, enable_reflection, enable_motivational_sentences, enable_text_to_speech, enable_custom_questions, custom_questions FROM settings WHERE id = 1"
   );
 
   if (!row) {
@@ -63,6 +65,8 @@ export async function getSettings(): Promise<AppSettings> {
     ringtoneName: row.ringtone_name ?? "Default",
     ringtoneUri: row.ringtone_uri,
     enableReflection: row.enable_reflection === 1,
+    enableMotivationalSentences: (row.enable_motivational_sentences ?? 1) === 1,
+    enableTextToSpeech: (row.enable_text_to_speech ?? 0) === 1,
     enableCustomQuestions: row.enable_custom_questions === 1,
     customQuestions,
   };
@@ -117,6 +121,14 @@ export async function updateSettings(settings: Partial<Omit<AppSettings, "minTas
   if (settings.enableReflection !== undefined) {
     updates.push("enable_reflection = ?");
     values.push(settings.enableReflection ? 1 : 0);
+  }
+  if (settings.enableMotivationalSentences !== undefined) {
+    updates.push("enable_motivational_sentences = ?");
+    values.push(settings.enableMotivationalSentences ? 1 : 0);
+  }
+  if (settings.enableTextToSpeech !== undefined) {
+    updates.push("enable_text_to_speech = ?");
+    values.push(settings.enableTextToSpeech ? 1 : 0);
   }
   if (settings.enableCustomQuestions !== undefined) {
     updates.push("enable_custom_questions = ?");

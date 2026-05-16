@@ -38,6 +38,8 @@ export type AppSettings = {
   ringtoneName: string;
   ringtoneUri?: string;
   enableReflection: boolean;
+  enableMotivationalSentences: boolean;
+  enableTextToSpeech: boolean;
   customQuestions: CustomQuestion[];
   enableCustomQuestions: boolean;
 };
@@ -54,6 +56,8 @@ export const DEFAULT_SETTINGS: Omit<AppSettings, "minTaskCount" | "maxTaskCount"
   ringtoneName: DEFAULT_RINGTONE.name,
   ringtoneUri: DEFAULT_RINGTONE.uri,
   enableReflection: true,
+  enableMotivationalSentences: true,
+  enableTextToSpeech: false,
   customQuestions: [],
   enableCustomQuestions: true,
 };
