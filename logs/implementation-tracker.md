@@ -100,6 +100,66 @@ Simple checklist to track what is done and what is pending.
 - [x] Clean up console logs and testing comments from services
 - [x] Update version to 2.4.0 in Settings UI
 
+## V4.0 Features - Night Guide & Reflection Extension
+
+**Status:** Spec clarified 2026-05-16 — **do not implement until confirmed.**  
+**Order:** Phase 2 (motivational) before Phase 3+ (Night Guide). See `docs/specs/09-version4.0.md`.
+
+### Phase 1: Core Types & Storage
+- [ ] Create NightGuide type in src/constants/types/
+- [ ] Create NightGuideTask, NightGuideOccurrence types
+- [ ] Create nightGuideRepository.ts (CRUD + setNightGuideEnabled weekday conflict)
+- [ ] Database migrations (night_guides, night_guide_tasks, night_guide_occurrences, night_reflections)
+- [ ] Create defaultNightReflectionQuestions.ts constants file
+- [ ] Create defaultMotivationalSentences.ts (expand pool over time)
+- [ ] IST date helpers + grace deadline (09:00 IST)
+
+### Phase 2: Motivational Sentences Component (ship first)
+- [ ] Create MotivationalSentencesReader component
+- [ ] Implement sequential sentence display logic
+- [ ] Implement 2.5 s delay between sentences
+- [ ] Implement "mark as read" click handler
+- [ ] Integrate text-to-speech using expo-speech
+- [ ] Integrate into AlarmRingingScreen (requires enableReflection + enableMotivationalSentences)
+- [ ] Random 3–5 sentence count
+
+### Phase 3: Night Guide Scheduling
+- [ ] Create nightGuideScheduler.ts + reconcileNightGuides on launch
+- [ ] Create separate notification channel for night guides
+- [ ] Implement notification trigger (no alarm ringing)
+- [ ] Implement notification sound (different from alarm sound)
+- [ ] Add navigation to Night Guide screen on notification tap
+
+### Phase 4: Night Guide Screen
+- [ ] Create NightGuideListScreen (list of configured night guides)
+- [ ] Create NightGuideFormScreen (create/edit night guide)
+- [ ] Create NightGuideActiveScreen (triggered by notification)
+- [ ] Implement task checklist section
+- [ ] Implement night reflection section
+- [ ] Implement "Good Night" message screen
+- [ ] Pending occurrence + grace (09:00 IST) + list pending cards
+- [ ] NightGuideHistoryScreen (calendar month/week/month stats)
+- [ ] One-time auto-disable after completion
+
+### Phase 5: Navigation Updates
+- [ ] Update MainTabs.tsx (add Night Guide tab)
+- [ ] Update RootStack.tsx (add Night Guide screens)
+- [ ] Add night guide icon to bottom nav
+
+### Phase 6: Settings Integration
+- [ ] Add enableMotivationalSentences toggle (gated by enableReflection in UI)
+- [ ] Add enableTextToSpeech toggle
+- [ ] No global Night Guide enable toggle
+
+### Phase 7: Testing
+- [ ] Test motivational sentences sequential flow
+- [ ] Test night guide notification trigger
+- [ ] Test night guide task checklist
+- [ ] Test night reflection questions
+- [ ] Test task completion history tracking
+- [ ] Test navigation from notification to Night Guide screen
+- [ ] Test scheduling logic (time, date, repeat)
+
 ## Post-V2 / MVP Remaining
 
 - [ ] Sound preview in alarm form

@@ -227,6 +227,49 @@ Define expected app behavior for runtime edge cases so alarm reliability remains
 - Task UI remains usable without clipped controls.
 - Allow scrolling for non-critical sections.
 
+## J) Night Guide scenarios (v4.0)
+
+## 26. Night guide notification at scheduled time (`P0`)
+
+### Expected behavior
+
+- Gentle notification on separate channel (not alarm channel).
+- `data.type === "night_guide_trigger"` and `nightGuideId` set.
+- Pending occurrence created with grace deadline 09:00 IST next calendar day.
+
+### Fallback
+
+- If notification permission denied, user can still open pending card in Night Guide tab until grace ends.
+
+## 27. Notification dismissed without opening (`P0`)
+
+### Expected behavior
+
+- Occurrence stays `pending` until completed or grace deadline.
+- Night Guide tab shows pending card to continue routine.
+- After 09:00 IST next day: `missed`, calendar red (if guide has tasks).
+
+## 28. Only one guide enabled per weekday (`P0`)
+
+### Expected behavior
+
+- Enabling guide A for Monday disables other enabled guides that include Monday.
+- User informed which guides were disabled.
+
+## 29. One-time night guide (`P1`)
+
+### Expected behavior
+
+- After user completes Good Night (or grace expires), one-time guide `enabled = false`.
+- No further notifications for that guide until user re-enables.
+
+## 30. Night guide vs alarm notification routing (`P0`)
+
+### Expected behavior
+
+- Tap on night guide notification opens `NightGuideActive`, never `AlarmRinging`.
+- Cold start uses same `type` discrimination as foreground handlers.
+
 ## Mandatory MVP scenario checklist
 
 - [ ] Background trigger works.
