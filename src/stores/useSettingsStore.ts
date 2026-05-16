@@ -100,16 +100,15 @@ export const useSettingsStore = create<SettingsState & SettingsActions>((set, ge
 
   updateEnableReflection: async (enabled: boolean) => {
     try {
-      const patch: Parameters<typeof settingsRepository.updateSettings>[0] = {
+      await settingsRepository.updateSettings({
         enableReflection: enabled,
-      };
-      if (!enabled) {
-        patch.enableMotivationalSentences = false;
-      }
-      await settingsRepository.updateSettings(patch);
+        enableMotivationalSentences: enabled,
+        enableTextToSpeech: enabled,
+      });
       set({
         enableReflection: enabled,
-        ...(!enabled ? { enableMotivationalSentences: false } : {}),
+        enableMotivationalSentences: enabled,
+        enableTextToSpeech: enabled,
       });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : "Failed to update reflection setting" });

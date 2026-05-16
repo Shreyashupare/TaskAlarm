@@ -19,6 +19,15 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
     marginLeft: 4,
   },
+  subsectionTitle: {
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginTop: 12,
+    marginBottom: 4,
+    marginLeft: 4,
+  },
   card: {
     borderRadius: 12,
     overflow: "hidden",

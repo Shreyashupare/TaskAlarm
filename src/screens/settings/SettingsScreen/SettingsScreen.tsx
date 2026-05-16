@@ -23,8 +23,7 @@ import {
   SNOOZE_OPTIONS,
   TIME_FORMAT_OPTIONS,
   TASK_TYPE_OPTIONS_V2,
-  MOTIVATIONAL_SENTENCES_LABEL,
-  TEXT_TO_SPEECH_LABEL,
+  REFLECTION_INFO_BODY,
 } from "./helpers/constants";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -48,8 +47,6 @@ export default function SettingsScreen() {
     minTaskCount,
     maxTaskCount,
     enableReflection,
-    enableMotivationalSentences,
-    enableTextToSpeech,
     enableCustomQuestions,
     customQuestions,
     loadSettings,
@@ -58,8 +55,6 @@ export default function SettingsScreen() {
     updateDefaultTaskCount,
     updateDefaultTaskTypes,
     updateEnableReflection,
-    updateEnableMotivationalSentences,
-    updateEnableTextToSpeech,
     updateEnableCustomQuestions,
   } = useSettingsStore();
 
@@ -194,7 +189,7 @@ export default function SettingsScreen() {
             {activeModal === "reflectionInfo" ? (
               <View style={{ padding: 20 }}>
                 <Text style={[styles.optionLabel, { color: t.text.primary, lineHeight: 22 }]}>
-                  Reflection is an open-ended question that appears as your final task. It helps you start the day with mindfulness. Any response is accepted and saved to your reflection history.
+                  {REFLECTION_INFO_BODY}
                 </Text>
               </View>
             ) : activeModal === "terms" ? (
@@ -424,83 +419,6 @@ export default function SettingsScreen() {
                     {
                       backgroundColor: "#fff",
                       transform: [{ translateX: enableReflection ? 20 : 0 }],
-                    },
-                  ]}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <View style={[styles.row, { borderBottomColor: t.border.subtle, borderBottomWidth: 1 }]}>
-              <Text
-                style={[
-                  styles.rowLabel,
-                  { color: enableReflection ? t.text.primary : t.text.secondary },
-                ]}
-              >
-                {MOTIVATIONAL_SENTENCES_LABEL}
-              </Text>
-              <TouchableOpacity
-                onPress={() => updateEnableMotivationalSentences(!enableMotivationalSentences)}
-                disabled={!enableReflection}
-                style={[
-                  styles.toggle,
-                  {
-                    backgroundColor:
-                      enableReflection && enableMotivationalSentences
-                        ? t.action.primaryBg
-                        : t.border.default,
-                    opacity: enableReflection ? 1 : 0.5,
-                  },
-                ]}
-              >
-                <View
-                  style={[
-                    styles.toggleKnob,
-                    {
-                      backgroundColor: "#fff",
-                      transform: [{ translateX: enableMotivationalSentences && enableReflection ? 20 : 0 }],
-                    },
-                  ]}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <View style={[styles.row, { borderBottomColor: t.border.subtle, borderBottomWidth: 1 }]}>
-              <Text
-                style={[
-                  styles.rowLabel,
-                  { color: enableMotivationalSentences && enableReflection ? t.text.primary : t.text.secondary },
-                ]}
-              >
-                {TEXT_TO_SPEECH_LABEL}
-              </Text>
-              <TouchableOpacity
-                onPress={() => updateEnableTextToSpeech(!enableTextToSpeech)}
-                disabled={!enableReflection || !enableMotivationalSentences}
-                style={[
-                  styles.toggle,
-                  {
-                    backgroundColor:
-                      enableReflection && enableMotivationalSentences && enableTextToSpeech
-                        ? t.action.primaryBg
-                        : t.border.default,
-                    opacity: enableReflection && enableMotivationalSentences ? 1 : 0.5,
-                  },
-                ]}
-              >
-                <View
-                  style={[
-                    styles.toggleKnob,
-                    {
-                      backgroundColor: "#fff",
-                      transform: [
-                        {
-                          translateX:
-                            enableTextToSpeech && enableReflection && enableMotivationalSentences
-                              ? 20
-                              : 0,
-                        },
-                      ],
                     },
                   ]}
                 />

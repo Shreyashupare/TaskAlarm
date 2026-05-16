@@ -35,8 +35,7 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [userAnswer, setUserAnswer] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const { timeFormat, enableReflection, enableMotivationalSentences, enableTextToSpeech } =
-    useSettingsStore();
+  const { timeFormat, enableReflection } = useSettingsStore();
   const use24Hour = timeFormat === "24h";
   const t = useThemeTokens();
 
@@ -63,6 +62,10 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
   const [selectedIcons, setSelectedIcons] = useState<Set<number>>(new Set()); // For icon_match
   const [orderTapSequence, setOrderTapSequence] = useState<number[]>([]); // For order_tap
   const [expectedOrderSequence, setExpectedOrderSequence] = useState<number[]>([]); // Track expected order
+
+  useEffect(() => {
+    useSettingsStore.getState().loadSettings();
+  }, []);
 
   // Start ringing on mount - check for existing persisted state
   useEffect(() => {
@@ -101,6 +104,9 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
         console.log("AlarmRingingScreen - soundUri:", soundUri);
         console.log("AlarmRingingScreen - vibration:", vibration);
       }
+
+      setShowMotivationalSentences(false);
+      setMotivationalSentences([]);
 
       startRinging(alarmId, alarm?.label, taskCount);
 
@@ -174,8 +180,8 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
           console.error("Failed to save reflection:", err);
         }
 
-        const showMotivational =
-          enableReflection && enableMotivationalSentences;
+        const settingsNow = useSettingsStore.getState();
+        const showMotivational = settingsNow.enableReflection;
 
         if (showMotivational) {
           setMotivationalSentences(getRandomMotivationalSentences());
@@ -212,8 +218,6 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
     completeCurrentTask,
     userAnswer,
     alarmId,
-    enableReflection,
-    enableMotivationalSentences,
   ]);
 
   const handleMotivationalSentencesComplete = useCallback(() => {
@@ -252,7 +256,7 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
         <MotivationalSentencesReader
           sentences={motivationalSentences}
           onComplete={handleMotivationalSentencesComplete}
-          enableTextToSpeech={enableTextToSpeech}
+          enableTextToSpeech={enableReflection}
         />
       );
     }
