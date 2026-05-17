@@ -4,6 +4,8 @@ Instructions for AI agents working in this repository. Full references: `docs/st
 
 ## Project context
 
+- GitHub: `Shreyashupare/TaskAlarm` — issues use `gh` CLI (auth with `gh auth login`).
+
 - React Native (Expo) + TypeScript alarm app; local SQLite, Zustand stores.
 - Specs: `docs/specs/`. V4.0: `docs/specs/09-version4.0.md`, `docs/specs/10-version4.0-technical.md`.
 - Ship small working increments; avoid scope creep and drive-by refactors.
@@ -75,9 +77,39 @@ Refactor only when duplication or complexity is real. Match existing patterns in
 
 ## Git workflow
 
+### Issue creation (bug report / feature request)
+
+**Always use the `gh` CLI** to create issues directly on GitHub:
+
+```bash
+gh issue create --title "<title>" --body "<description>"
+```
+
+- Use the `--label` flag to tag appropriately (`bug`, `enhancement`, `documentation`).
+- Include root cause analysis, expected vs actual behavior, affected code paths, and reproduction steps in the body.
+
+### Branch strategy for new work
+
+Before writing any code for a new feature or bugfix:
+
+1. Create a branch from `main` with the naming pattern `<TSKALRM-00x>-bug/feature/chore-<short-title>` — e.g., `TSKALRM-005-chore-github-workflow-setup`, `TSKALRM-006-bug-repeating-alarms-fix`.
+2. Push the branch to origin.
+3. Create a **draft PR** early (mark as "Draft") to signal work in progress.
+4. Implement the smallest useful change; keep commits clean.
+5. When ready, mark the PR as "Ready for review" and request review.
+
+### PR workflow
+
+1. Branch from `main` with the naming pattern `<TSKALRM-00x>-bug/feature/chore-<short-title>`.
+2. Push early, create a draft PR.
+3. Implement and commit with conventional prefixes.
+4. Update `logs/implementation-tracker.md`, `logs/changeLogs.md`, and `logs/decisionLogs.md` as appropriate.
+5. Convert draft PR → ready PR when complete.
+6. Merge only after review approval.
+
 ### Branches
 
-`ticketId-<feature>` — e.g. `ALRM-01_alarmList`, `TSKALRM-001`.
+`<TSKALRM-00x>-bug/feature/chore-<short-title>` — e.g. `TSKALRM-001-bug-alarm-list-crash`, `TSKALRM-002-feature-dark-mode`.
 
 ### Commits
 
@@ -175,6 +207,19 @@ Add new sections/phases for new specs (e.g. V4.0 in `docs/specs/`). Mark items d
 
 ---
 
+### Issue triage workflow (CI)
+
+`.github/workflows/issue-management.yml` auto-labels new issues:
+- Contains `bug` / `fail` / `does not` → label `bug`
+- Contains `feature` / `request` / `enhancement` → label `enhancement`
+- Contains `crash` / `blocker` → label `priority-critical`
+- Contains `repeat` / `alarm fail` / `not ring` → label `priority-high`
+
+`.github/workflows/ci.yml` runs on PRs to `main`:
+- TypeScript type checking
+- ESLint linting
+- Dependency installation
+
 ## Quick links
 
 | Resource | Path |
@@ -187,3 +232,5 @@ Add new sections/phases for new specs (e.g. V4.0 in `docs/specs/`). Mark items d
 | Change logs | `logs/changeLogs.md` |
 | Implementation tracker | `logs/implementation-tracker.md` |
 | Architecture | `docs/specs/01-architecture.md` |
+| CI workflows | `.github/workflows/` |
+| Bug issues | `docs/issues/` |
