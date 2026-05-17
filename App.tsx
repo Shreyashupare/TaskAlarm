@@ -10,6 +10,8 @@ import { ThemeProvider } from "./src/theme";
 import { useAlarmStore } from "./src/stores/useAlarmStore";
 import { useRingingStore } from "./src/stores/useRingingStore";
 import { reconcileAlarms, rescheduleAlarm, setupAlarmNotificationChannel, launchAlarmFromNotification } from "./src/services/alarmScheduler";
+import { reconcileNightGuides } from "./src/services/nightGuideScheduler";
+import { useNightGuideStore } from "./src/stores/useNightGuideStore";
 import { getLaunchAlarmId, clearLaunchAlarm } from "./src/services/launchIntentService";
 import { initDatabase } from "./src/data/db/sqlite";
 import { seedQuotesIfEmpty } from "./src/data/repositories/quoteRepository";
@@ -215,11 +217,26 @@ function AppContent() {
     };
   }, []);
 
+  // Night guide reconcile on launch
+  const { guides: nightGuides, loadGuides: loadNightGuides } = useNightGuideStore();
+
   useEffect(() => {
     if (isReady && alarms.length > 0) {
       reconcileAlarms(alarms);
     }
   }, [alarms, isReady]);
+
+  useEffect(() => {
+    if (isReady) {
+      loadNightGuides();
+    }
+  }, [isReady, loadNightGuides]);
+
+  useEffect(() => {
+    if (isReady && nightGuides.length > 0) {
+      reconcileNightGuides(nightGuides);
+    }
+  }, [nightGuides, isReady]);
 
   // Handle Notifications (alarm triggers)
   useEffect(() => {
@@ -229,6 +246,12 @@ function AppContent() {
       if (alarmId) {
         handleAlarmTrigger(alarmId);
       }
+      // Night guide foreground handling
+      const nightGuideId = notification.request.content.data?.nightGuideId as string | undefined;
+      const notificationType = notification.request.content.data?.type as string | undefined;
+      if (nightGuideId && notificationType === "night_guide_trigger") {
+        if (DEBUG) console.log("Night Guide notification received in foreground:", nightGuideId);
+      }
     });
 
     // Listener for when a user interacts with a notification (e.g., taps it)
@@ -236,6 +259,16 @@ function AppContent() {
       const alarmId = response.notification.request.content.data?.alarmId as string | undefined;
       if (alarmId) {
         handleAlarmTrigger(alarmId);
+        return;
+      }
+      // Night Guide notification tap
+      const nightGuideId = response.notification.request.content.data?.nightGuideId as string | undefined;
+      const notificationType = response.notification.request.content.data?.type as string | undefined;
+      if (nightGuideId && notificationType === "night_guide_trigger") {
+        if (DEBUG) console.log("Night Guide notification tapped:", nightGuideId);
+        if (navigationRef.current?.isReady()) {
+          navigationRef.current?.navigate("NightGuideActive", { guideId: nightGuideId, mode: "full" });
+        }
       }
     });
 

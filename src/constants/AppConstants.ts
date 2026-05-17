@@ -33,3 +33,12 @@ export const DEFAULT_RINGTONES = [
   { type: "default" as const, name: "Default Alarm", uri: undefined },
   { type: "reminder" as const, name: "Reminder", uri: undefined },
 ];
+
+// V4.0: Motivational sentences (after morning reflection)
+export const MOTIVATIONAL_SENTENCE_DELAY_MS = 2500;
+export const MOTIVATIONAL_SENTENCE_COUNT_MIN = 3;
+export const MOTIVATIONAL_SENTENCE_COUNT_MAX = 5;
+
+// V4.0: Night Guide constants
+export const NIGHT_GUIDE_GRACE_HOUR_IST = 9;
+export const NIGHT_GUIDE_TIMEZONE = "Asia/Kolkata";

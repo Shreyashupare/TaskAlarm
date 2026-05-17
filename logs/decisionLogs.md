@@ -13,6 +13,72 @@ Track important decisions in lightweight format.
 
 ---
 
+### 2026-05-16 - V4.0 spec clarifications (pre-implementation)
+
+- Decision: Lock v4.0 behavior before coding — motivational sentences first, then Night Guide; no global Night Guide toggle; IST grace window; one guide enabled per weekday.
+- Why: Resolves review ambiguities and matches product intent.
+- Key rules:
+  - **Order:** Motivational sentences → Night Guide (update 2026-05-14 follow-ups below).
+  - **Motivational:** Requires `enableReflection` + `enableMotivationalSentences`; 3–5 sentences; 2.5 s delay; no sentence history.
+  - **Night Guide tab:** Always in bottom nav (like Alarms / My Questions); config in tab, not Settings feature flag.
+  - **One enabled per weekday:** Enabling a guide disables others sharing any repeat day.
+  - **One-time:** Auto-disable after occurrence; no reschedule.
+  - **Grace:** Pending until **09:00 IST** next calendar day; in-app pending card; then red if tasks configured and incomplete.
+  - **Calendar:** Green = completed (with tasks); Red = missed after grace; Gray = unscheduled or guide has **no tasks**.
+  - **Naming:** Recommend **Wind Down** for UI; code stays `NightGuide` until renamed.
+  - **History:** Night Guide history screen (calendar + summaries), separate from morning Reflections.
+- Alternatives: Global enableNightGuide toggle (rejected); motivational history in Reflections (rejected).
+- Follow-up: Product owner confirms tab name and gives **go** to implement. Specs: `09-version4.0.md`, `10-version4.0-technical.md`.
+
+---
+
+### 2026-05-14 - Night Guide Feature
+
+- Decision: Add new "Night Guide" bottom tab with notification-based bedtime routine including task checklist and night-specific reflection.
+- Why: Users need a structured bedtime routine to wind down and prepare for the next day, complementing the morning alarm routine.
+- Requirements:
+  - New bottom nav tab: "Night Guide" (Alarms | My Questions | Night Guide)
+  - Night Guide triggers notification (not alarm) at scheduled time
+  - Notification sound (gentle, different from alarm sound)
+  - On tap: Navigate to Night Guide screen with up to 2 sections:
+    1. Task Checklist (optional): User-configurable bedtime tasks
+    2. Night Reflection: Different questions/sentences
+  - End with "Good Night" message
+  - Same scheduling logic as alarms (time, date, repeat)
+  - Separate NightGuide type but reuse components/logic where possible
+  - Task completion history tracking:
+    - Show percentage completion for each day
+    - Calendar view: green for completed days, red for incomplete
+    - No notification for days without scheduled night guide
+    - Only show task list if tasks were configured
+- Alternatives:
+  1. Use same alarm type with flag (less clear separation)
+  2. No task list, only reflection (less comprehensive)
+- Follow-up: Spec in `docs/specs/09-version4.0.md`. **Implement after motivational sentences** (see 2026-05-16 entry).
+
+---
+
+### 2026-05-14 - Reflection Extension with Motivational Sentences
+
+- Decision: Extend reflection feature to include Part 2 with 3-5 motivational sentences that must be read sequentially with a delay between each.
+- Why: Enhances the morning reflection experience by adding positive affirmations that users actively engage with, creating a stronger motivational impact.
+- Requirements:
+  - Part 1: Existing reflection question (no right/wrong answer)
+  - Part 2: 3-5 motivational sentences displayed sequentially
+  - Sentences randomly selected from pool of 100-200 affirmations
+  - Each sentence must be marked as "read" by clicking
+  - After marking one as read, 2-3 second delay before next is enabled
+  - No skip option - must complete all sentences
+  - Title: "Read Out Loud"
+  - Text-to-speech using expo-speech (lightweight)
+  - No progress indicator required
+- Alternatives:
+  1. Display all sentences at once (less engaging)
+  2. Allow skipping (reduces commitment)
+- Follow-up: **Implement before Night Guide** (see 2026-05-16 entry). Spec: `docs/specs/09-version4.0.md` §1.
+
+---
+
 ### 2026-04-16 - Reflection Task Engine (No Right/Wrong)
 
 - Decision: Add a new task type "reflection" that asks open-ended questions with no correct answer - any text input is accepted.

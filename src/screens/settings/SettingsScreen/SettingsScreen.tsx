@@ -17,7 +17,14 @@ import { TopHeader } from "../../../components/ui";
 import type { ThemePreference, AlarmTaskType, TimeFormat } from "../../../constants/types";
 import { MIN_TASK_COUNT, MAX_TASK_COUNT } from "../../../constants/AppConstants";
 import { styles } from "./styles";
-import { THEME_OPTIONS, TASK_TYPE_OPTIONS, SNOOZE_OPTIONS, TIME_FORMAT_OPTIONS, TASK_TYPE_OPTIONS_V2 } from "./helpers/constants";
+import {
+  THEME_OPTIONS,
+  TASK_TYPE_OPTIONS,
+  SNOOZE_OPTIONS,
+  TIME_FORMAT_OPTIONS,
+  TASK_TYPE_OPTIONS_V2,
+  REFLECTION_INFO_BODY,
+} from "./helpers/constants";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../../navigation/RootStack";
@@ -182,7 +189,7 @@ export default function SettingsScreen() {
             {activeModal === "reflectionInfo" ? (
               <View style={{ padding: 20 }}>
                 <Text style={[styles.optionLabel, { color: t.text.primary, lineHeight: 22 }]}>
-                  Reflection is an open-ended question that appears as your final task. It helps you start the day with mindfulness. Any response is accepted and saved to your reflection history.
+                  {REFLECTION_INFO_BODY}
                 </Text>
               </View>
             ) : activeModal === "terms" ? (
@@ -448,19 +455,9 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* View Reflections Link */}
-            <TouchableOpacity style={styles.row} onPress={() => navigation.navigate("Reflections")}>
-              <Text style={[styles.rowLabel, { color: t.text.primary }]}>
-                View Reflections
-              </Text>
-              <View style={styles.rowRight}>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={t.icon.secondary}
-                />
-              </View>
-            </TouchableOpacity>
+
+
+
           </View>
         </View>
 
@@ -515,7 +512,7 @@ export default function SettingsScreen() {
                 Version
               </Text>
               <Text style={[styles.rowValue, { color: t.text.secondary }]}>
-                3.0
+                4.0
               </Text>
             </View>
           </View>

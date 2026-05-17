@@ -53,6 +53,51 @@ export async function initDatabase(): Promise<void> {
       active INTEGER NOT NULL DEFAULT 1
     );
 
+    CREATE TABLE IF NOT EXISTS night_guides (
+      id TEXT PRIMARY KEY,
+      time TEXT NOT NULL,
+      weekdays TEXT NOT NULL,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      label TEXT,
+      sound_type TEXT NOT NULL DEFAULT 'notification',
+      sound_name TEXT NOT NULL,
+      sound_uri TEXT,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS night_guide_tasks (
+      id TEXT PRIMARY KEY,
+      night_guide_id TEXT NOT NULL,
+      text TEXT NOT NULL,
+      order_num INTEGER NOT NULL,
+      FOREIGN KEY (night_guide_id) REFERENCES night_guides(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS night_guide_occurrences (
+      id TEXT PRIMARY KEY,
+      night_guide_id TEXT NOT NULL,
+      scheduled_date TEXT NOT NULL,
+      status TEXT NOT NULL,
+      completion_percentage INTEGER NOT NULL DEFAULT 0,
+      grace_deadline_at INTEGER NOT NULL,
+      created_at INTEGER NOT NULL,
+      completed_at INTEGER,
+      FOREIGN KEY (night_guide_id) REFERENCES night_guides(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS night_reflections (
+      id TEXT PRIMARY KEY,
+      night_guide_id TEXT NOT NULL,
+      occurrence_id TEXT NOT NULL,
+      question TEXT NOT NULL,
+      response TEXT NOT NULL,
+      completion_percentage INTEGER NOT NULL,
+      created_at INTEGER NOT NULL,
+      FOREIGN KEY (night_guide_id) REFERENCES night_guides(id) ON DELETE CASCADE,
+      FOREIGN KEY (occurrence_id) REFERENCES night_guide_occurrences(id) ON DELETE CASCADE
+    );
+
   `);
 
   // Migration: handle missing columns
@@ -145,6 +190,17 @@ export async function initDatabase(): Promise<void> {
     if (!columns.includes("enable_custom_questions")) {
       await database.execAsync(
         "ALTER TABLE settings ADD COLUMN enable_custom_questions INTEGER NOT NULL DEFAULT 1"
+      );
+    }
+
+    if (!columns.includes("enable_motivational_sentences")) {
+      await database.execAsync(
+        "ALTER TABLE settings ADD COLUMN enable_motivational_sentences INTEGER NOT NULL DEFAULT 1"
+      );
+    }
+    if (!columns.includes("enable_text_to_speech")) {
+      await database.execAsync(
+        "ALTER TABLE settings ADD COLUMN enable_text_to_speech INTEGER NOT NULL DEFAULT 0"
       );
     }
 

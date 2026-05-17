@@ -33,7 +33,7 @@ export const darkTheme: ThemeTokens = {
     error: "#F07A7A",
   },
   accent: {
-    softSky: "#1E2A36",
+    softSky: "#8AB4F8",
   },
   ...sharedTokens,
 };

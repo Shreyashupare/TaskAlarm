@@ -7,6 +7,11 @@ import AlarmRingingScreen from "../screens/ringing/AlarmRingingScreen/AlarmRingi
 import QuoteScreen from "../screens/ringing/QuoteScreen/QuoteScreen";
 import SettingsScreen from "../screens/settings/SettingsScreen/SettingsScreen";
 import ReflectionsScreen from "../screens/settings/ReflectionsScreen/ReflectionsScreen";
+import NightGuideFormScreen from "../screens/nightGuide/NightGuideFormScreen/NightGuideFormScreen";
+import NightGuideActiveScreen from "../screens/nightGuide/NightGuideActiveScreen/NightGuideActiveScreen";
+import GoodNightScreen from "../screens/nightGuide/GoodNightScreen/GoodNightScreen";
+import NightGuideHistoryScreen from "../screens/nightGuide/NightGuideHistoryScreen/NightGuideHistoryScreen";
+import HistoryScreen from "../screens/history/HistoryScreen/HistoryScreen";
 
 export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList>;
@@ -15,6 +20,11 @@ export type RootStackParamList = {
   Quote: { alarmId: string };
   Settings: undefined;
   Reflections: undefined;
+  NightGuideForm: { nightGuideId?: string };
+  NightGuideActive: { guideId: string; occurrenceId?: string; mode?: "tasks-only" | "full" | "readonly"; };
+  NightGuideGoodNight: undefined;
+  NightGuideHistory: undefined;
+  History: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -27,8 +37,9 @@ interface RootStackProps {
 }
 
 function RootStackComponent({ navigationRef }: RootStackProps, ref: React.ForwardedRef<NavigationContainerRef<RootStackParamList>>) {
+  const navRef = ref || navigationRef;
   return (
-    <NavigationContainer ref={ref || navigationRef}>
+    <NavigationContainer ref={navRef}>
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
@@ -59,6 +70,31 @@ function RootStackComponent({ navigationRef }: RootStackProps, ref: React.Forwar
         <Stack.Screen
           name="Reflections"
           component={ReflectionsScreen}
+          options={{ headerShown: false, gestureEnabled: true }}
+        />
+        <Stack.Screen
+          name="NightGuideForm"
+          component={NightGuideFormScreen}
+          options={{ headerShown: false, gestureEnabled: true }}
+        />
+        <Stack.Screen
+          name="NightGuideActive"
+          component={NightGuideActiveScreen}
+          options={{ animation: "fade", gestureEnabled: false }}
+        />
+        <Stack.Screen
+          name="NightGuideGoodNight"
+          component={GoodNightScreen}
+          options={{ animation: "fade", gestureEnabled: true }}
+        />
+        <Stack.Screen
+          name="NightGuideHistory"
+          component={NightGuideHistoryScreen}
+          options={{ headerShown: false, gestureEnabled: true }}
+        />
+        <Stack.Screen
+          name="History"
+          component={HistoryScreen}
           options={{ headerShown: false, gestureEnabled: true }}
         />
       </Stack.Navigator>

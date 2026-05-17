@@ -34,3 +34,6 @@ export const TIME_FORMAT_OPTIONS: { value: "12h" | "24h"; label: string }[] = [
   { value: "12h", label: "12-hour (AM/PM)" },
   { value: "24h", label: "24-hour" },
 ];
+
+export const REFLECTION_INFO_BODY =
+  "Reflection is an open-ended question that appears as your final task. It helps you start the day with mindfulness. Any response is accepted and saved to your reflection history.\n\nWhen reflection is on, you also get Read Out Loud: a short set of affirmations to read before you finish the alarm. Each line is marked with the circle beside it, in order. Spoken playback is included automatically.";

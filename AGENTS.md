@@ -1,0 +1,189 @@
+# TaskAlarm — Agent Guide
+
+Instructions for AI agents working in this repository. Full references: `docs/standards/coding-standards.md`, `docs/process/git-workflow.md`.
+
+## Project context
+
+- React Native (Expo) + TypeScript alarm app; local SQLite, Zustand stores.
+- Specs: `docs/specs/`. V4.0: `docs/specs/09-version4.0.md`, `docs/specs/10-version4.0-technical.md`.
+- Ship small working increments; avoid scope creep and drive-by refactors.
+- **V4.0:** Implement motivational sentences before Night Guide. **Do not start v4.0 code until the user confirms.**
+
+---
+
+## Coding standards
+
+### Simplicity and structure
+
+- Small modules, single responsibility; clear code over clever code.
+- Reuse components and utilities; keep business logic out of UI when possible.
+- No duplicate logic across screens/services.
+
+### Naming
+
+| Kind | Convention |
+|------|------------|
+| Components, types | `PascalCase` |
+| Variables, functions | `camelCase` |
+| Constants | `SCREAMING_SNAKE_CASE` |
+
+Prefer clear names over short names.
+
+### Constants and strings
+
+- No magic numbers in business logic — extract to named constants (e.g. `TASK_COUNT_LIMIT`, `MOTIVATIONAL_SENTENCE_DELAY_MS`).
+- No hardcoded user-facing strings in components/services — use constants/maps (labels, errors, prompts).
+- Global constants: `src/constants/AppConstants.ts`. Feature-local: `src/constants/` subfolders or screen `helpers/constants.ts`.
+- Night Guide **UI label only:** `NIGHT_GUIDE_TITLE` in `src/constants/nightGuideConstants.ts` (code uses `NightGuide*` everywhere else).
+
+### Types
+
+- Use `type`/`interface` for data contracts; shared domain models in `src/types/` or `src/constants/types/` (match existing code).
+- Classes only when behavior/stateful modeling is needed.
+- **Never** define types and implementation in the same file — use co-located `types.ts` or shared types folders.
+- Explicit return types on public service/store methods.
+
+### Screen and component folders
+
+Each screen/component gets its own PascalCase folder:
+
+```
+ComponentName/
+├── ComponentName.tsx   # logic only
+├── styles.ts
+└── helpers/
+    ├── constants.ts
+    └── utils.ts
+```
+
+- Screens: `src/screens/<feature>/...`
+- Shared UI: `src/components/ui/` or `src/components/`
+- Shared utils: `src/utils/`
+
+### Theme, logging, imports
+
+- Colors, spacing, typography from centralized theme — no hardcoded theme values in screens.
+- Logs: only where needed; levels `debug` | `info` | `warn` | `error`; default runtime level `error` via central config; never log secrets/PII.
+- Comments: only for non-obvious logic — explain **why**, not what.
+- Imports: relative paths (`../`, `./`); **no** path aliases (`@/`).
+
+### MVP rule
+
+Refactor only when duplication or complexity is real. Match existing patterns in surrounding code.
+
+---
+
+## Git workflow
+
+### Branches
+
+`ticketId-<feature>` — e.g. `ALRM-01_alarmList`, `TSKALRM-001`.
+
+### Commits
+
+Prefix with type and short result:
+
+- `feature: …`
+- `bugfix: …`
+- `improvement: …`
+- `docs: …`
+- `chore: …`
+
+Only commit when the user explicitly asks.
+
+### Working process
+
+1. Clarify ticket/scope.
+2. Implement the smallest useful change.
+3. Test core behavior.
+4. Update docs and logs when behavior changes (see below).
+5. Commit with a clear message.
+
+### Self-review / PR checklist
+
+- Scope matches ticket; no unrelated edits.
+- Simple, modular, readable; reused shared logic.
+- No stray hardcoded numbers/strings or theme values.
+- Types/contracts correct; alarm/task/quote flows match specs and fallbacks.
+- Tests/manual checks for changed areas.
+- Decision log, changelog, and implementation tracker updated when appropriate.
+
+---
+
+## Project logs (required maintenance)
+
+Update these when making meaningful changes — not for trivial typo-only edits.
+
+### Decision log — `logs/decisionLogs.md`
+
+Use for architectural or product decisions (new features, trade-offs, rejected alternatives).
+
+**When:** New feature direction, non-obvious technical choice, or spec-level change.
+
+**Template** (append at top, after the template block):
+
+```markdown
+### YYYY-MM-DD - Decision title
+
+- Decision:
+- Why:
+- Alternatives:
+- Follow-up:
+```
+
+### Change log — `logs/changeLogs.md`
+
+**When:** At commit time (user-requested commits), or when summarizing a completed chunk of work.
+
+**Template:**
+
+```markdown
+### YYYY-MM-DD HH:MM:SS Z - <commit-or-ticket>
+
+- What was done:
+- Files/areas changed:
+- Commit id: `<hash>`
+- Notes:
+```
+
+Include branch name when relevant. This file is the audit trail of what shipped.
+
+### Implementation tracker — `logs/implementation-tracker.md`
+
+**When:** Starting, progressing, or finishing tracked work (features, phases, platform checks).
+
+**Status markers:**
+
+- `[ ]` not started
+- `[-]` in progress
+- `[x]` done
+
+Add new sections/phases for new specs (e.g. V4.0 in `docs/specs/`). Mark items done only when actually complete.
+
+---
+
+## Agent workflow summary
+
+| Step | Action |
+|------|--------|
+| Before coding | Read relevant `docs/specs/` and existing code patterns |
+| V4.0 | Motivational sentences first; confirm with user before any implementation |
+| While coding | Follow folder structure, constants, types, theme rules |
+| After meaningful work | Update `implementation-tracker.md`; add decision entry if needed |
+| On commit (when asked) | Update `changeLogs.md` with commit id and summary |
+| Before finishing | Run self-review checklist; avoid editing markdown the user did not ask for unless logs/docs are part of the task |
+
+---
+
+## Quick links
+
+| Resource | Path |
+|----------|------|
+| Coding standards (full) | `docs/standards/coding-standards.md` |
+| Git workflow (full) | `docs/process/git-workflow.md` |
+| V4.0 product spec | `docs/specs/09-version4.0.md` |
+| V4.0 technical spec | `docs/specs/10-version4.0-technical.md` |
+| Decision logs | `logs/decisionLogs.md` |
+| Change logs | `logs/changeLogs.md` |
+| Implementation tracker | `logs/implementation-tracker.md` |
+| Architecture | `docs/specs/01-architecture.md` |

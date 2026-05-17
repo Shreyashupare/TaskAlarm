@@ -100,6 +100,71 @@ Simple checklist to track what is done and what is pending.
 - [x] Clean up console logs and testing comments from services
 - [x] Update version to 2.4.0 in Settings UI
 
+## V4.0 Features - Night Guide & Reflection Extension
+
+**Order:** Phase 2 (motivational) before Phase 3+ (Night Guide). See `docs/specs/09-version4.0.md`.
+
+### Phase 1: Core Types & Storage (partial — motivational settings only)
+- [x] Settings migration: enable_motivational_sentences, enable_text_to_speech
+- [x] defaultMotivationalSentences.ts + AppConstants delay/count
+- [x] Create NightGuide type in src/constants/types/
+- [x] Create NightGuideTask, NightGuideOccurrence types
+- [x] Create nightGuideRepository.ts (CRUD + setNightGuideEnabled weekday conflict)
+- [x] Database migrations (night_guides, night_guide_tasks, night_guide_occurrences, night_reflections)
+- [x] Create defaultNightReflectionQuestions.ts constants file
+- [x] Create defaultMotivationalSentences.ts (expand pool over time)
+- [x] IST date helpers + grace deadline (09:00 IST)
+
+### Phase 2: Motivational Sentences Component (ship first)
+- [x] Create MotivationalSentencesReader component
+- [x] Implement sequential sentence display logic
+- [x] Implement 2.5 s delay between sentences
+- [x] Implement "mark as read" click handler
+- [x] Integrate text-to-speech using expo-speech
+- [x] Integrate into AlarmRingingScreen (requires enableReflection + enableMotivationalSentences)
+- [x] Random 3–5 sentence count
+- [x] Settings toggles (motivational sentences + TTS)
+- [x] `NIGHT_GUIDE_TITLE` in `src/constants/nightGuideConstants.ts`
+
+### Phase 3: Night Guide Scheduling
+- [x] Create nightGuideScheduler.ts + reconcileNightGuides on launch
+- [x] Create separate notification channel for night guides
+- [x] Implement notification trigger (no alarm ringing)
+- [x] Implement notification sound (different from alarm sound)
+- [x] Add navigation to Night Guide screen on notification tap
+
+### Phase 4: Night Guide Screen
+- [x] Create NightGuideListScreen (list of configured night guides)
+- [x] Create NightGuideFormScreen (create/edit night guide)
+- [x] Create NightGuideActiveScreen (triggered by notification)
+- [x] Implement task checklist section
+- [x] Implement night reflection section
+- [x] Implement "Good Night" message screen
+- [x] Pending occurrence + grace (09:00 IST) + list pending cards
+- [x] NightGuideHistoryScreen (calendar month/week/month stats)
+- [x] One-time auto-disable after completion
+
+### Phase 5: Navigation Updates
+- [x] Update MainTabs.tsx (add Night Guide tab)
+- [x] Update MainTabs.tsx (add History tab)
+- [x] Update RootStack.tsx (add Night Guide screens)
+- [x] Add night guide icon to bottom nav
+- [x] Add History screen with unified morning + night reflections
+
+### Phase 6: Settings Integration
+- [x] Add enableMotivationalSentences toggle (gated by enableReflection in UI)
+- [x] Add enableTextToSpeech toggle
+- [x] No global Night Guide enable toggle
+
+### Phase 7: Testing
+- [x] Test motivational sentences sequential flow
+- [x] Test night guide notification trigger
+- [x] Test night guide task checklist
+- [x] Test night reflection questions
+- [x] Test task completion history tracking
+- [x] Test navigation from notification to Night Guide screen
+- [x] Test scheduling logic (time, date, repeat)
+
 ## Post-V2 / MVP Remaining
 
 - [ ] Sound preview in alarm form
@@ -142,3 +207,19 @@ Simple checklist to track what is done and what is pending.
 - [ ] Reboot restore (Android receiver)
 - [ ] Custom sound fallback
 - [ ] iOS specific implementations
+
+## Post-V4.0 Fixes (Session 2026-05-17)
+
+- [x] Fix moon icon visibility (update `softSky` color tokens for both themes)
+- [x] Remove back button from History tab screen
+- [x] Add loading indicator when editing Night Guide form
+- [x] Fix `keyboardShouldPersistTaps="always"` on form ScrollViews
+- [x] Fix dark theme color tokens (weekday circles, add btn, save btn)
+- [x] Fix time arrows alignment on unwind form (matching alarm form style)
+- [x] Fix calendar: circle shapes, no future-date coloring
+- [x] Fix notification tap → navigate to NightGuideActive with `mode: "full"`
+- [x] Fix HistoryScreen unwind tabs: show task breakdown (done/not done)
+- [x] Fix MotivationalSentenceReader: no delay for last sentence
+- [x] Fix settings: single "Include Reflection" toggle (no separate toggles)
+- [x] Fix grace deadline: correct UTC hour for 09:00 IST
+- [x] Fix occurrence ID: use IST date consistently

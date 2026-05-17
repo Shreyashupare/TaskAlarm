@@ -3,11 +3,16 @@ import { Ionicons } from "@expo/vector-icons";
 
 import AlarmListScreen from "../screens/alarms/AlarmListScreen/AlarmListScreen";
 import MyQuestionsScreen from "../screens/myQuestions/MyQuestionsScreen/MyQuestionsScreen";
+import NightGuideListScreen from "../screens/nightGuide/NightGuideListScreen/NightGuideListScreen";
+import HistoryScreen from "../screens/history/HistoryScreen/HistoryScreen";
 import { useThemeTokens } from "../theme";
+import { NIGHT_GUIDE_TITLE } from "../constants/nightGuideConstants";
 
 export type MainTabParamList = {
   Alarms: undefined;
   MyQuestions: undefined;
+  NightGuide: undefined;
+  History: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -25,6 +30,10 @@ export default function MainTabs() {
             iconName = focused ? "alarm" : "alarm-outline";
           } else if (route.name === "MyQuestions") {
             iconName = focused ? "help-circle" : "help-circle-outline";
+          } else if (route.name === "NightGuide") {
+            iconName = focused ? "moon" : "moon-outline";
+          } else if (route.name === "History") {
+            iconName = focused ? "time" : "time-outline";
           } else {
             iconName = "help-circle";
           }
@@ -50,6 +59,16 @@ export default function MainTabs() {
         name="MyQuestions"
         component={MyQuestionsScreen}
         options={{ tabBarLabel: "My Questions" }}
+      />
+      <Tab.Screen
+        name="NightGuide"
+        component={NightGuideListScreen}
+        options={{ tabBarLabel: NIGHT_GUIDE_TITLE }}
+      />
+      <Tab.Screen
+        name="History"
+        component={HistoryScreen}
+        options={{ tabBarLabel: "History" }}
       />
     </Tab.Navigator>
   );

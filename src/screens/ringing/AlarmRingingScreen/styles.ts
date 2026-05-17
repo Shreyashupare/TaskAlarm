@@ -68,6 +68,14 @@ export const styles = StyleSheet.create({
     maxWidth: 400,
     // Background color set dynamically via theme
   },
+  stageHint: {
+    fontSize: 13,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 12,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
   taskQuestion: {
     fontSize: 28,
     fontWeight: "600",

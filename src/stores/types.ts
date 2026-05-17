@@ -31,6 +31,8 @@ export type SettingsActions = {
   updateRingtone: (type: "default" | "custom", name: string, uri?: string) => Promise<void>;
   updateCustomQuestions: (questions: CustomQuestion[]) => Promise<void>;
   updateEnableReflection: (enabled: boolean) => Promise<void>;
+  updateEnableMotivationalSentences: (enabled: boolean) => Promise<void>;
+  updateEnableTextToSpeech: (enabled: boolean) => Promise<void>;
   updateEnableCustomQuestions: (enabled: boolean) => Promise<void>;
 };
 

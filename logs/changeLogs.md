@@ -8,7 +8,7 @@ This file is updated at commit time only.
 
 - What was done:
 - Files/areas changed:
-- Commit id: `<to-be-added>`
+- Commit id: `7a95780`
 - Notes:
 
 ---
@@ -70,3 +70,24 @@ This file is updated at commit time only.
 - What was done: Created project documentation.
 - Files/areas created: `docs/`, `logs/`, `meta/ai/`, `README.md`, `.gitignore`.
 
+
+### 2026-05-17 19:30:00 IST - v4.0-post-fixes
+
+- What was done: Completed V4.0 Night Guide implementation with fixes for moon icon visibility, History screen back button removal, form loading state, dark theme colors, calendar circle shapes, notification navigation, grace deadline timezone, and settings toggle cleanup.
+- Files/areas changed: App.tsx, navigation, theme, screens (NightGuide*, History, Settings), repositories, stores, constants, utils, services, components
+- Commit id: `7a95780`
+- Notes: Full V4.0 feature set completed. No schema changes needed.
+
+### 2026-05-17 20:00:00 IST - v4.0-unwind-history-states
+
+- What was done: Fixed Unwind history to show three distinct occurrence states (Completed/Missed/Pending) instead of collapsing everything into "Not Done". Only completed days show task breakdown.
+- Files/areas changed: src/screens/history/HistoryScreen/HistoryScreen.tsx
+- Commit id: `1ff0ecf`
+- Notes:
+
+### 2026-05-17 20:30:00 IST - unwind-history-polish
+
+- What was done: Fixed Unwind history to show distinct states (Completed/Missed/Pending), added progress bar for completed days, made cards compact, removed redundant Morning/Night labels from reflection cards, updated notification title/body.
+- Files/areas changed: src/screens/history/HistoryScreen/HistoryScreen.tsx, src/screens/history/HistoryScreen/styles.ts, src/services/nightGuideScheduler.ts
+- Commit id: `1ff0ecf`
+- Notes:
