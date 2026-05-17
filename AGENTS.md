@@ -93,19 +93,21 @@ gh issue create --title "<title>" --body "<description>"
 Before writing any code for a new feature or bugfix:
 
 1. Create a branch from `main` with the naming pattern `<TSKALRM-00x>-bug/feature/chore-<short-title>` — e.g., `TSKALRM-005-chore-github-workflow-setup`, `TSKALRM-006-bug-repeating-alarms-fix`.
-2. Push the branch to origin.
-3. Create a **draft PR** early (mark as "Draft") to signal work in progress.
-4. Implement the smallest useful change; keep commits clean.
-5. When ready, mark the PR as "Ready for review" and request review.
+2. Implement the smallest useful change; keep commits clean.
+3. When ready to share, push the branch to origin.
+4. Create a **draft PR** (mark as "Draft") to signal work in progress.
+5. Update `logs/implementation-tracker.md`, `logs/changeLogs.md`, and `logs/decisionLogs.md` as appropriate.
+6. Mark the PR as "Ready for review" and request review.
 
 ### PR workflow
 
 1. Branch from `main` with the naming pattern `<TSKALRM-00x>-bug/feature/chore-<short-title>`.
-2. Push early, create a draft PR.
-3. Implement and commit with conventional prefixes.
-4. Update `logs/implementation-tracker.md`, `logs/changeLogs.md`, and `logs/decisionLogs.md` as appropriate.
-5. Convert draft PR → ready PR when complete.
-6. Merge only after review approval.
+2. Implement the smallest useful change with conventional commit prefixes.
+3. Update `logs/implementation-tracker.md`, `logs/changeLogs.md`, and `logs/decisionLogs.md` as appropriate.
+4. Push the branch to origin.
+5. Create a draft PR early (mark as "Draft") to signal work in progress.
+6. Convert draft PR → ready PR when complete.
+7. Merge only after review approval.
 
 ### Branches
 
