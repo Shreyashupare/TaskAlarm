@@ -77,3 +77,10 @@ This file is updated at commit time only.
 - Files/areas changed: App.tsx, navigation, theme, screens (NightGuide*, History, Settings), repositories, stores, constants, utils, services, components
 - Commit id: `7a95780`
 - Notes: Full V4.0 feature set completed. No schema changes needed.
+
+### 2026-05-17 20:00:00 IST - v4.0-unwind-history-states
+
+- What was done: Fixed Unwind history to show three distinct occurrence states (Completed/Missed/Pending) instead of collapsing everything into "Not Done". Only completed days show task breakdown.
+- Files/areas changed: src/screens/history/HistoryScreen/HistoryScreen.tsx
+- Commit id: `<to-be-added>`
+- Notes:

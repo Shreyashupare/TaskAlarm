@@ -152,10 +152,32 @@ export default function HistoryScreen() {
 
     return unwindDays.map((entry) => {
       const tasksTotal = entry.tasks.length;
-      // tasks that were done based on completionPercentage
-      const doneCount = tasksTotal > 0 ? Math.round((entry.completedPct / 100) * tasksTotal) : 0;
+      const bestOcc = entry.occurrences.find(o => o.status === "completed") || entry.occurrences[0];
+      const occStatus = bestOcc?.status || "pending";
+
+      // For completed days, show task breakdown
+      const doneCount = tasksTotal > 0 && occStatus === "completed"
+        ? Math.round((entry.completedPct / 100) * tasksTotal)
+        : 0;
       const notDoneCount = tasksTotal - doneCount;
-      const status = entry.occurrences.find(o => o.status === "completed") ? "done" : "not_done";
+
+      let iconName: "checkmark-circle" | "close-circle" | "time";
+      let iconColor: string;
+      let label: string;
+
+      if (occStatus === "completed") {
+        iconName = "checkmark-circle";
+        iconColor = t.state.success;
+        label = "Completed";
+      } else if (occStatus === "missed") {
+        iconName = "close-circle";
+        iconColor = t.state.error;
+        label = "Missed";
+      } else {
+        iconName = "time";
+        iconColor = t.state.warning;
+        label = "Pending";
+      }
 
       return (
         <TouchableOpacity
@@ -175,21 +197,33 @@ export default function HistoryScreen() {
         >
           <Text style={[styles.dateHeader, { color: t.text.secondary }]}>{formatDate(entry.date)}</Text>
 
-          {/* Task breakdown: Done / Not Done */}
+          {/* Status badge */}
           <View style={styles.unwindStatsRow}>
             <View style={styles.unwindStat}>
-              <Ionicons name="checkmark-circle" size={20} color={t.state.success} />
-              <Text style={[styles.unwindStatValue, { color: t.state.success }]}> {doneCount}</Text>
-              <Text style={[styles.unwindStatLabel, { color: t.text.secondary }]}>Done</Text>
+              <Ionicons name={iconName} size={20} color={iconColor} />
+              <Text style={[styles.unwindStatValue, { color: iconColor }]}> {label}</Text>
             </View>
-            <View style={styles.unwindStat}>
-              <Ionicons name="close-circle" size={20} color={status === "done" ? t.text.secondary : t.state.error} />
-              <Text style={[styles.unwindStatValue, { color: status === "done" ? t.text.secondary : t.state.error }]}> {notDoneCount}</Text>
-              <Text style={[styles.unwindStatLabel, { color: t.text.secondary }]}>Not Done</Text>
+          </View>
+
+          {/* Task breakdown: only for completed days */}
+          {occStatus === "completed" && tasksTotal > 0 && (
+            <View style={styles.unwindStatsRow}>
+              <View style={styles.unwindStat}>
+                <Ionicons name="checkmark-circle" size={20} color={t.state.success} />
+                <Text style={[styles.unwindStatValue, { color: t.state.success }]}> {doneCount}</Text>
+                <Text style={[styles.unwindStatLabel, { color: t.text.secondary }]}>Done</Text>
+              </View>
+              <View style={styles.unwindStat}>
+                <Ionicons name="close-circle" size={20} color={t.text.secondary} />
+                <Text style={[styles.unwindStatValue, { color: t.text.secondary }]}> {notDoneCount}</Text>
+                <Text style={[styles.unwindStatLabel, { color: t.text.secondary }]}>Not Done</Text>
+              </View>
             </View>
-            <View style={styles.unwindStat}>
-              <Ionicons name="chevron-forward" size={20} color={t.icon.secondary} />
-            </View>
+          )}
+
+          {/* Chevron */}
+          <View style={{ alignItems: "flex-end", marginTop: 4 }}>
+            <Ionicons name="chevron-forward" size={20} color={t.icon.secondary} />
           </View>
         </TouchableOpacity>
       );
