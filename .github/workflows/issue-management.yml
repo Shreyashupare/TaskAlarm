@@ -1,0 +1,74 @@
+name: Issue Management
+
+on:
+  issues:
+    types: [opened, reopened]
+
+jobs:
+  triage:
+    name: Triage Issue
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Classify and label issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+            const body = issue.body ? issue.body.toLowerCase() : '';
+            const labels = [];
+
+            // Auto-label bug vs enhancement
+            if (title.includes('bug') || title.includes('fix') || title.includes('error') ||
+                title.includes('fail') || body.includes('bug') || body.includes('not work') ||
+                body.includes('does not') || body.includes('expected behavior')) {
+              labels.push('bug');
+            }
+            if (title.includes('feature') || title.includes('request') || title.includes('idea') ||
+                title.includes('enhancement') || body.includes('feature request') ||
+                body.includes('proposed solution')) {
+              labels.push('enhancement');
+            }
+
+            // Priority labels
+            if (body.includes('crash') || body.includes('data loss') || body.includes('blocker') ||
+                title.includes('crash') || title.includes('blocker')) {
+              labels.push('priority-critical');
+            } else if (body.includes('does not ring') || body.includes('not trigger') ||
+                       body.includes('not fire') || body.includes('alarm fail') ||
+                       title.includes('repeat') || title.includes('alarm fail')) {
+              labels.push('priority-high');
+            }
+
+            // Add labels if we found any
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.issue_number,
+                labels: labels
+              });
+            }
+
+            // Create a comment with triage guidance
+            const commentBody = `## 👋 Thank you for submitting this issue!
+
+**Auto-triage complete.** Added labels: ${labels.length > 0 ? labels.join(', ') : 'none detected'}
+
+### Next steps:
+1. A maintainer will review and confirm the issue
+2. If confirmed, it will be assigned and tracked in the implementation tracker
+3. Pull requests should reference this issue number
+
+_This is an automated response._`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.issue_number,
+              body: commentBody
+            });
