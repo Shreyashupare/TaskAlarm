@@ -82,12 +82,12 @@ This file is updated at commit time only.
 
 - What was done: Fixed Unwind history to show three distinct occurrence states (Completed/Missed/Pending) instead of collapsing everything into "Not Done". Only completed days show task breakdown.
 - Files/areas changed: src/screens/history/HistoryScreen/HistoryScreen.tsx
-- Commit id: `<to-be-added>`
+- Commit id: `1ff0ecf`
 - Notes:
 
 ### 2026-05-17 20:30:00 IST - unwind-history-polish
 
 - What was done: Fixed Unwind history to show distinct states (Completed/Missed/Pending), added progress bar for completed days, made cards compact, removed redundant Morning/Night labels from reflection cards, updated notification title/body.
 - Files/areas changed: src/screens/history/HistoryScreen/HistoryScreen.tsx, src/screens/history/HistoryScreen/styles.ts, src/services/nightGuideScheduler.ts
-- Commit id: `<to-be-added>`
+- Commit id: `1ff0ecf`
 - Notes:
