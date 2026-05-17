@@ -209,6 +209,7 @@ Simple checklist to track what is done and what is pending.
 - [ ] iOS specific implementations
 
 ## Post-V4.0 Fixes (Session 2026-05-17)
+- [x] Fix repeating alarms not rescheduling after completion
 
 - [x] Fix moon icon visibility (update `softSky` color tokens for both themes)
 - [x] Remove back button from History tab screen

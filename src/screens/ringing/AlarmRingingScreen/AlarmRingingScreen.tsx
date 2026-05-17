@@ -17,6 +17,7 @@ import type { RootStackParamList } from "../../../navigation/RootStack";
 import { useRingingStore } from "../../../stores/useRingingStore";
 import { useAlarmAudio } from "../../../services/alarmAudioService";
 import { generateTasks, validateAnswer } from "../../../services/tasks/taskEngine";
+import { rescheduleAlarm } from "../../../services/alarmScheduler";
 import type { Task } from "../../../stores/types";
 import { useThemeTokens } from "../../../theme";
 import { DEBUG } from "../../../constants/AppConstants";
@@ -244,6 +245,11 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
 
     await stopRinging();
     await stop();
+    // Reschedule for repeating alarms
+    const currentAlarm = useAlarmStore.getState().alarms.find((a) => a.id === alarmId);
+    if (currentAlarm && currentAlarm.weekdays.length > 0) {
+      await rescheduleAlarm(currentAlarm);
+    }
     reset();
     navigation.navigate("Quote", { alarmId });
   }, [isStopUnlocked, stopRinging, stop, reset, navigation, alarmId]);

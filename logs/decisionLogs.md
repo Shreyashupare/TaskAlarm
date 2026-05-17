@@ -1,3 +1,10 @@
+
+### 2026-05-17 - Repeating alarms not rescheduling after completion (TSKALRM-004)
+
+- Decision: Call `rescheduleAlarm()` in `handleStop` when a repeating alarm completes.
+- Why: `handleStop` in `AlarmRingingScreen` never rescheduled the next occurrence for repeating alarms (those with `weekdays` configured). The Night Guide equivalent (`rescheduleNightGuide`) was correctly called in `NightGuideActiveScreen`. This was a missing call, not a deeper logic issue.
+- Alternatives: Reschedule inside `stopRinging()` in the store (less direct, mixes concerns).
+- Follow-up: Push branch, create draft PR once network available.
 # Decision Logs
 
 Track important decisions in lightweight format.
