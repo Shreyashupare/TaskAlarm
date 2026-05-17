@@ -54,7 +54,14 @@ function getTodayStatus(
   );
 
   if (todayOcc) {
-    if (todayOcc.status === "completed") return { label: "Completed", status: "completed" };
+    if (todayOcc.status === "completed") {
+      const pct = todayOcc.completionPercentage;
+      const taskCount = todayOcc.completedTaskIds.length;
+      if (taskCount > 0 && taskCount < 100 && pct < 100) {
+        return { label: `${taskCount} tasks done`, status: "pending" };
+      }
+      return { label: "Completed", status: "completed" };
+    }
     if (todayOcc.status === "missed") return { label: "Missed", status: "missed" };
     if (todayOcc.status === "pending") return { label: "Pending", status: "pending" };
   }

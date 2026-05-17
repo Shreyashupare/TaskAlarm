@@ -7,24 +7,24 @@ import { styles } from "./styles";
 
 type TaskChecklistProps = {
   tasks: NightGuideTask[];
-  onComplete: (completedCount: number) => void;
+  onComplete: (completedCount: number, completedIds: string[]) => void;
   /** When true, tasks are shown with checkmarks but not tappable */
   readOnly?: boolean;
   /** Pre-filled completed task indices for read-only view */
-  completedCount?: number;
+  completedTaskIds?: string[];
 };
 
-export default function TaskChecklist({ tasks, onComplete, readOnly = false, completedCount = 0 }: TaskChecklistProps) {
+export default function TaskChecklist({ tasks, onComplete, readOnly = false, completedTaskIds = [] }: TaskChecklistProps) {
   const t = useThemeTokens();
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
 
-  // Initialize completed IDs if readOnly with completedCount
+  // Initialize completed IDs from completedTaskIds (readOnly view)
   useEffect(() => {
-    if (readOnly && completedCount > 0) {
-      const ids = new Set(tasks.slice(0, completedCount).map(t => t.id));
+    if (completedTaskIds && completedTaskIds.length > 0) {
+      const ids = new Set(completedTaskIds);
       setCompletedIds(ids);
     }
-  }, [readOnly, completedCount, tasks]);
+  }, [completedTaskIds, tasks]);
 
   const handleToggle = (id: string) => {
     if (readOnly) return;
@@ -35,7 +35,7 @@ export default function TaskChecklist({ tasks, onComplete, readOnly = false, com
       next.add(id);
     }
     setCompletedIds(next);
-    onComplete(next.size);
+    onComplete(next.size, Array.from(next));
   };
 
   const allDone = completedIds.size === tasks.length && tasks.length > 0;

@@ -20,12 +20,19 @@ import TaskChecklist from "../../../components/nightGuide/TaskChecklist/TaskChec
 import ReflectionInput from "../../../components/nightGuide/ReflectionInput/ReflectionInput";
 import MotivationalSentencesReader from "../../../components/motivationalSentences/MotivationalSentencesReader/MotivationalSentencesReader";
 import { getRandomNightMotivationalSentences } from "../../../constants/defaultNightMotivationalSentences";
-import { getIstDateString } from "../../../utils/istDate";
+import { getIstDateString, getIstTimeString, getGraceDeadlineMs } from "../../../utils/istDate";
 import { rescheduleNightGuide } from "../../../services/nightGuideScheduler";
 import { styles } from "./styles";
 
 type NavProp = NativeStackNavigationProp<RootStackParamList>;
 type ActiveRoute = RouteProp<RootStackParamList, "NightGuideActive">;
+
+/** Check if the current IST time is at or past the guide's scheduled time */
+function isOccurrenceTime(guide: NightGuide | null): boolean {
+  if (!guide) return true;
+  const nowTime = getIstTimeString();
+  return nowTime >= guide.time;
+}
 
 export default function NightGuideActiveScreen() {
   const t = useThemeTokens();
@@ -40,6 +47,7 @@ export default function NightGuideActiveScreen() {
   const [tasks, setTasks] = useState<NightGuideTask[]>([]);
   const [occurrence, setOccurrence] = useState<NightGuideOccurrence | null>(null);
   const [completedTasks, setCompletedTasks] = useState(0);
+  const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
   const [reflectionDone, setReflectionDone] = useState(false);
   const [phase, setPhase] = useState<"tasks" | "reflection" | "motivational" | "done">("tasks");
   const [motivationalSentences, setMotivationalSentences] = useState<string[]>([]);
@@ -63,6 +71,10 @@ export default function NightGuideActiveScreen() {
         setOccurrence(occ);
         if (occ && occ.status === "completed" && !isReadOnly) {
           setPhase("done");
+        } else if (occ && occ.status === "pending" && occ.completedTaskIds.length > 0) {
+          // Bug A fix: restore completed task state for partial completion
+          setCompletedTaskIds(occ.completedTaskIds);
+          setCompletedTasks(occ.completedTaskIds.length);
         }
       }
     } catch (err) {
@@ -71,8 +83,9 @@ export default function NightGuideActiveScreen() {
     setIsLoading(false);
   };
 
-  const handleTasksComplete = useCallback((count: number) => {
+  const handleTasksComplete = useCallback((count: number, ids: string[]) => {
     setCompletedTasks(count);
+    setCompletedTaskIds(ids);
   }, []);
 
   const handleMotivationalSentencesComplete = useCallback(async () => {
@@ -86,7 +99,6 @@ export default function NightGuideActiveScreen() {
 
     try {
       if (!occurrenceId) {
-        const { getGraceDeadlineMs } = await import("../../../utils/istDate");
         const todayStr = getIstDateString();
         await nightGuideRepository.upsertOccurrence({
           id: occId,
@@ -94,12 +106,13 @@ export default function NightGuideActiveScreen() {
           scheduledDate: todayStr,
           status: "completed",
           completionPercentage: compPct,
+          completedTaskIds: completedTaskIds,
           graceDeadlineAt: getGraceDeadlineMs(todayStr),
           createdAt: now,
           completedAt: now,
         });
       } else {
-        await nightGuideRepository.updateOccurrenceStatus(occId, "completed", compPct, now);
+        await nightGuideRepository.updateOccurrenceStatus(occId, "completed", compPct, completedTaskIds, now);
       }
       if (pendingReflection) {
         await nightGuideRepository.saveNightReflection({
@@ -140,22 +153,30 @@ export default function NightGuideActiveScreen() {
       const now = Date.now();
       const occId = occurrenceId || `${guideId}_${getIstDateString()}`;
       const compPct = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 100;
+      const allDone = completedTasks >= tasks.length;
+
+      // Check if current time is before the scheduled guide time
+      const g = guide || await nightGuideRepository.getNightGuideById(guideId);
+      const isBeforeTime = !isOccurrenceTime(g);
+
       try {
         if (!occurrenceId) {
-          const { getGraceDeadlineMs } = await import("../../../utils/istDate");
           const todayStr = getIstDateString();
           await nightGuideRepository.upsertOccurrence({
             id: occId,
             nightGuideId: guideId,
             scheduledDate: todayStr,
-            status: "completed",
+            // Bug A: before scheduled time → save as pending so user can revisit
+            status: allDone || !isBeforeTime ? "completed" : "pending",
             completionPercentage: compPct,
+            completedTaskIds: completedTaskIds,
             graceDeadlineAt: getGraceDeadlineMs(todayStr),
             createdAt: now,
-            completedAt: now,
+            completedAt: allDone || !isBeforeTime ? now : undefined,
           });
         } else {
-          await nightGuideRepository.updateOccurrenceStatus(occId, "completed", compPct, now);
+          const status = allDone || !isBeforeTime ? "completed" : "pending";
+          await nightGuideRepository.updateOccurrenceStatus(occId, status, compPct, completedTaskIds, allDone || !isBeforeTime ? now : undefined);
         }
         if (guide && guide.weekdays.length > 0) {
           await rescheduleNightGuide(guide);
@@ -170,7 +191,7 @@ export default function NightGuideActiveScreen() {
     } else {
       setPhase("reflection");
     }
-  }, [isTasksOnly, occurrenceId, guideId, completedTasks, tasks.length, guide, loadGuides, loadOccurrences]);
+  }, [isTasksOnly, occurrenceId, guideId, completedTasks, completedTaskIds, tasks.length, guide, loadGuides, loadOccurrences]);
 
   const dateHeaderLabel = useMemo(() => {
     if (!occurrence?.scheduledDate) return null;
@@ -264,7 +285,7 @@ export default function NightGuideActiveScreen() {
                 tasks={tasks}
                 onComplete={handleTasksComplete}
                 readOnly={isReadOnly}
-                completedCount={occurrence?.status === "completed" ? tasks.length : completedTasks}
+                completedTaskIds={isReadOnly || (occurrence?.completedTaskIds.length ?? 0) > 0 ? (occurrence?.completedTaskIds ?? []) : undefined}
               />
             )}
             {tasks.length === 0 && phase === "tasks" && (

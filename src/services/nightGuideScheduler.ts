@@ -107,6 +107,7 @@ export async function scheduleNightGuide(guide: NightGuide): Promise<void> {
       scheduledDate,
       status: "pending",
       completionPercentage: 0,
+      completedTaskIds: [],
       graceDeadlineAt: getGraceDeadlineMs(scheduledDate),
       createdAt: Date.now(),
     });

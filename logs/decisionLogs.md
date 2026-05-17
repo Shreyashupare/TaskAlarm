@@ -4,6 +4,20 @@
 - Decision: Call `rescheduleAlarm()` in `handleStop` when a repeating alarm completes.
 - Why: `handleStop` in `AlarmRingingScreen` never rescheduled the next occurrence for repeating alarms (those with `weekdays` configured). The Night Guide equivalent (`rescheduleNightGuide`) was correctly called in `NightGuideActiveScreen`. This was a missing call, not a deeper logic issue.
 - Alternatives: Reschedule inside `stopRinging()` in the store (less direct, mixes concerns).
+
+### 2026-05-17 - Night Guide partial completion & history checklist mismatch (TSKALRM-006)
+
+- Decision: Implement per-task tracking for Night Guide occurrences + before-time partial completion.
+- Why: Two bugs: (A) Tasks partially completed before scheduled time couldn't be revisited because handleTasksDone immediately set status to "completed". (B) History read-only view showed all tasks strikethrough because TaskChecklist used `completedCount` (integer) instead of actual completed task IDs.
+- Changes:
+  - Added `completedTaskIds: string[]` to `NightGuideOccurrence` type + DB migration
+  - Updated `TaskChecklist` to accept `completedTaskIds` prop and pass IDs back via `onComplete`
+  - Updated `NightGuideActiveScreen` to save occurrence as `pending` (not `completed`) when before scheduled time, restoring task IDs on re-entry
+  - Updated `updateOccurrenceStatus` to persist completedTaskIds
+  - Updated list screen to show task count badge for partial completions
+- Alternatives: Storing only percentage (loses per-task identity); computed task field in DB (over-engineered for MVP).
+- Follow-up: After this fix, `graceDeadlineAt` should be used to auto-transition pending → missed at 09:00 IST next day.
+
 - Follow-up: Push branch, create draft PR once network available.
 # Decision Logs
 

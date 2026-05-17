@@ -221,6 +221,17 @@ export async function initDatabase(): Promise<void> {
       INSERT OR IGNORE INTO settings (id, theme, time_format, default_task_count, default_task_types, snooze_policy, snooze_interval, snooze_max_count, ringtone_type, ringtone_name, enable_reflection, custom_questions, enable_custom_questions)
       VALUES (1, 'system', '12h', 5, '["math","color","shape"]', 'afterCompletionOnly', 5, 3, 'default', 'Default', 1, '[]', 1);
     `);
+    // Migration: add completed_task_ids column to night_guide_occurrences
+    const occTableInfo = await database.getAllAsync<{ name: string }>(
+      "PRAGMA table_info(night_guide_occurrences)"
+    );
+    const occColumns = occTableInfo.map((col: { name: string }) => col.name);
+    if (!occColumns.includes("completed_task_ids")) {
+      await database.execAsync(
+        "ALTER TABLE night_guide_occurrences ADD COLUMN completed_task_ids TEXT NOT NULL DEFAULT '[]'"
+      );
+    }
+
     if (DEBUG) console.log("Database migrations completed successfully");
   } catch (migrationErr) {
     if (DEBUG) console.error("Database migration error:", migrationErr);
