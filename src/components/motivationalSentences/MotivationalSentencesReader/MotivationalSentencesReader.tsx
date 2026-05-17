@@ -55,15 +55,16 @@ export default function MotivationalSentencesReader({
       stopSpeaking();
       setReadIndices((prev) => new Set(prev).add(index));
 
-      setTimeout(() => {
-        const next = index + 1;
-        if (next >= sentences.length) {
-          onComplete();
-        } else {
+      const next = index + 1;
+      if (next >= sentences.length) {
+        // No delay for last sentence - immediately finish
+        onComplete();
+      } else {
+        setTimeout(() => {
           setActiveIndex(next);
           setIsAdvancing(false);
-        }
-      }, MOTIVATIONAL_SENTENCE_DELAY_MS);
+        }, MOTIVATIONAL_SENTENCE_DELAY_MS);
+      }
     },
     [activeIndex, isAdvancing, readIndices, sentences.length, onComplete]
   );

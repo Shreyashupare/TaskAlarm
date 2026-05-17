@@ -455,19 +455,9 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* View Reflections Link */}
-            <TouchableOpacity style={styles.row} onPress={() => navigation.navigate("Reflections")}>
-              <Text style={[styles.rowLabel, { color: t.text.primary }]}>
-                View Reflections
-              </Text>
-              <View style={styles.rowRight}>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={t.icon.secondary}
-                />
-              </View>
-            </TouchableOpacity>
+
+
+
           </View>
         </View>
 
@@ -522,7 +512,7 @@ export default function SettingsScreen() {
                 Version
               </Text>
               <Text style={[styles.rowValue, { color: t.text.secondary }]}>
-                3.0
+                4.0
               </Text>
             </View>
           </View>

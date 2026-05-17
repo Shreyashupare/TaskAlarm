@@ -256,7 +256,7 @@ export default function AlarmRingingScreen({ route, navigation }: Props) {
         <MotivationalSentencesReader
           sentences={motivationalSentences}
           onComplete={handleMotivationalSentencesComplete}
-          enableTextToSpeech={enableReflection}
+          enableTextToSpeech={true}
         />
       );
     }

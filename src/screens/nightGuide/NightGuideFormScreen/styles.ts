@@ -1,0 +1,120 @@
+import { StyleSheet } from "react-native";
+
+export const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  flex: { flex: 1 },
+  scroll: { padding: 16, paddingBottom: 60 },
+  field: { marginBottom: 20 },
+  fieldLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+  },
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  switchLabel: { fontSize: 16, fontWeight: "500" },
+  toggle: {
+    width: 44,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: "center",
+    paddingHorizontal: 2,
+  },
+  toggleKnob: { width: 20, height: 20, borderRadius: 10 },
+  weekdayRow: { flexDirection: "row", gap: 10 },
+  weekdayBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+  },
+  weekdayLabel: { fontSize: 14, fontWeight: "600" },
+  taskRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+  },
+  taskText: { fontSize: 15, flex: 1, marginRight: 8 },
+  addTaskRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
+  taskInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 15,
+  },
+  addBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  saveBtn: {
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  saveBtnText: { fontSize: 17, fontWeight: "700" },
+  // Time picker - matching alarm form
+  timeCard: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+  },
+  timeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  timeUnit: {
+    alignItems: "center",
+  },
+  timeBtn: {
+    padding: 8,
+  },
+  timeValue: {
+    fontSize: 48,
+    fontWeight: "300",
+    fontVariant: ["tabular-nums"],
+    minWidth: 60,
+    textAlign: "center",
+  },
+  colon: {
+    fontSize: 48,
+    fontWeight: "300",
+    marginHorizontal: 8,
+  },
+  ampmContainer: {
+    marginLeft: 12,
+    justifyContent: "center",
+  },
+  ampmBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  ampmText: {
+    fontSize: 24,
+    fontWeight: "600",
+  },
+});
