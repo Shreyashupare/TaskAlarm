@@ -8,7 +8,7 @@ This file is updated at commit time only.
 
 - What was done:
 - Files/areas changed:
-- Commit id: `<to-be-added>`
+- Commit id: `7a95780`
 - Notes:
 
 ---
@@ -70,3 +70,10 @@ This file is updated at commit time only.
 - What was done: Created project documentation.
 - Files/areas created: `docs/`, `logs/`, `meta/ai/`, `README.md`, `.gitignore`.
 
+
+### 2026-05-17 19:30:00 IST - v4.0-post-fixes
+
+- What was done: Completed V4.0 Night Guide implementation with fixes for moon icon visibility, History screen back button removal, form loading state, dark theme colors, calendar circle shapes, notification navigation, grace deadline timezone, and settings toggle cleanup.
+- Files/areas changed: App.tsx, navigation, theme, screens (NightGuide*, History, Settings), repositories, stores, constants, utils, services, components
+- Commit id: `7a95780`
+- Notes: Full V4.0 feature set completed. No schema changes needed.

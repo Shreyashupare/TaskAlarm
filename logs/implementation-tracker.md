@@ -207,3 +207,19 @@ Simple checklist to track what is done and what is pending.
 - [ ] Reboot restore (Android receiver)
 - [ ] Custom sound fallback
 - [ ] iOS specific implementations
+
+## Post-V4.0 Fixes (Session 2026-05-17)
+
+- [x] Fix moon icon visibility (update `softSky` color tokens for both themes)
+- [x] Remove back button from History tab screen
+- [x] Add loading indicator when editing Night Guide form
+- [x] Fix `keyboardShouldPersistTaps="always"` on form ScrollViews
+- [x] Fix dark theme color tokens (weekday circles, add btn, save btn)
+- [x] Fix time arrows alignment on unwind form (matching alarm form style)
+- [x] Fix calendar: circle shapes, no future-date coloring
+- [x] Fix notification tap → navigate to NightGuideActive with `mode: "full"`
+- [x] Fix HistoryScreen unwind tabs: show task breakdown (done/not done)
+- [x] Fix MotivationalSentenceReader: no delay for last sentence
+- [x] Fix settings: single "Include Reflection" toggle (no separate toggles)
+- [x] Fix grace deadline: correct UTC hour for 09:00 IST
+- [x] Fix occurrence ID: use IST date consistently

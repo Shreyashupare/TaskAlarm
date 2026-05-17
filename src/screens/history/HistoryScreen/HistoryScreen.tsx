@@ -231,10 +231,7 @@ export default function HistoryScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: t.bg.app }]}>
-      <View style={{ borderBottomColor: t.border.default, borderBottomWidth: 1, paddingHorizontal: 16, paddingVertical: 12, flexDirection: "row", alignItems: "center", backgroundColor: t.bg.surface }}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4, marginRight: 8 }}>
-          <Ionicons name="arrow-back" size={24} color={t.icon.primary} />
-        </TouchableOpacity>
+      <View style={{ borderBottomColor: t.border.default, borderBottomWidth: 1, paddingHorizontal: 16, paddingVertical: 12, alignItems: "center", backgroundColor: t.bg.surface }}>
         <Text style={{ color: t.text.primary, fontSize: 20, fontWeight: "600" }}>History</Text>
       </View>
 

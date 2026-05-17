@@ -172,6 +172,12 @@ export default function NightGuideFormScreen() {
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: t.bg.app }]}>
+      {isLoadingExisting ? (
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <Text style={{ color: t.text.secondary, fontSize: 16 }}>Loading...</Text>
+        </View>
+      ) : (
+      <>
       <TopHeader
         title={isEditing ? `Edit ${NIGHT_GUIDE_TITLE}` : `New ${NIGHT_GUIDE_TITLE}`}
         onBack={() => navigation.goBack()}
@@ -393,6 +399,8 @@ export default function NightGuideFormScreen() {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+      </>
+      )}
     </SafeAreaView>
   );
 }

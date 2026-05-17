@@ -33,7 +33,7 @@ export const lightTheme: ThemeTokens = {
     error: "#C73434",
   },
   accent: {
-    softSky: "#EAF4FF",
+    softSky: "#4A90D9",
   },
   ...sharedTokens,
 };
