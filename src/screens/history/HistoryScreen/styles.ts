@@ -19,8 +19,7 @@ export const styles = StyleSheet.create({
   dateHeader: {
     fontSize: 13,
     fontWeight: "600",
-    marginBottom: 10,
-    marginTop: 4,
+    marginBottom: 6,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
@@ -80,21 +79,16 @@ export const styles = StyleSheet.create({
   // Unwind progress
   unwindDayCard: {
     borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    padding: 10,
+    marginBottom: 8,
   },
   unwindStatsRow: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginVertical: 10,
+    marginVertical: 4,
   },
   unwindStat: { alignItems: "center" },
-  unwindStatValue: { fontSize: 20, fontWeight: "700" },
+  unwindStatValue: { fontSize: 16, fontWeight: "700" },
   unwindStatLabel: { fontSize: 11, marginTop: 2 },
   progressBarBg: {
     height: 6,

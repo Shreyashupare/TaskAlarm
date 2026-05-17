@@ -124,12 +124,8 @@ export default function HistoryScreen() {
     question: string,
     response: string,
     createdAt: number,
-    type: "morning" | "night"
   ) => (
-    <View key={`${type}_${createdAt}_${question.slice(0, 20)}`} style={[styles.card, { backgroundColor: t.bg.surface }]}>
-      <Text style={[styles.cardType, { color: type === "morning" ? t.action.primaryBg : t.accent.softSky }]}>
-        {type === "morning" ? "Morning" : "Night"}
-      </Text>
+    <View key={`${createdAt}_${question.slice(0, 20)}`} style={[styles.card, { backgroundColor: t.bg.surface }]}>
       <Text style={[styles.cardQuestion, { color: t.text.primary }]}>{question}</Text>
       <Text style={[styles.cardResponse, { color: t.text.secondary }]}>"{response}"</Text>
     </View>
@@ -195,30 +191,42 @@ export default function HistoryScreen() {
           }}
           activeOpacity={0.7}
         >
-          <Text style={[styles.dateHeader, { color: t.text.secondary }]}>{formatDate(entry.date)}</Text>
-
-          {/* Status badge */}
-          <View style={styles.unwindStatsRow}>
-            <View style={styles.unwindStat}>
-              <Ionicons name={iconName} size={20} color={iconColor} />
-              <Text style={[styles.unwindStatValue, { color: iconColor }]}> {label}</Text>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+            <Text style={[styles.dateHeader, { color: t.text.secondary, marginBottom: 0 }]}>{formatDate(entry.date)}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              <Ionicons name={iconName} size={16} color={iconColor} />
+              <Text style={{ fontSize: 13, fontWeight: "600", color: iconColor }}>{label}</Text>
             </View>
           </View>
 
-          {/* Task breakdown: only for completed days */}
+          {/* Task breakdown + progress bar: only for completed days */}
           {occStatus === "completed" && tasksTotal > 0 && (
-            <View style={styles.unwindStatsRow}>
-              <View style={styles.unwindStat}>
-                <Ionicons name="checkmark-circle" size={20} color={t.state.success} />
-                <Text style={[styles.unwindStatValue, { color: t.state.success }]}> {doneCount}</Text>
-                <Text style={[styles.unwindStatLabel, { color: t.text.secondary }]}>Done</Text>
+            <>
+              <View style={styles.unwindStatsRow}>
+                <View style={styles.unwindStat}>
+                  <Ionicons name="checkmark-circle" size={20} color={t.state.success} />
+                  <Text style={[styles.unwindStatValue, { color: t.state.success }]}> {doneCount}</Text>
+                  <Text style={[styles.unwindStatLabel, { color: t.text.secondary }]}>Done</Text>
+                </View>
+                <View style={styles.unwindStat}>
+                  <Ionicons name="close-circle" size={20} color={t.text.secondary} />
+                  <Text style={[styles.unwindStatValue, { color: t.text.secondary }]}> {notDoneCount}</Text>
+                  <Text style={[styles.unwindStatLabel, { color: t.text.secondary }]}>Not Done</Text>
+                </View>
               </View>
-              <View style={styles.unwindStat}>
-                <Ionicons name="close-circle" size={20} color={t.text.secondary} />
-                <Text style={[styles.unwindStatValue, { color: t.text.secondary }]}> {notDoneCount}</Text>
-                <Text style={[styles.unwindStatLabel, { color: t.text.secondary }]}>Not Done</Text>
+              {/* Progress bar */}
+              <View style={[styles.progressBarBg, { backgroundColor: t.border.subtle, marginTop: 6 }]}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      backgroundColor: t.state.success,
+                      width: tasksTotal > 0 ? `${Math.round((doneCount / tasksTotal) * 100)}%` : "0%",
+                    },
+                  ]}
+                />
               </View>
-            </View>
+            </>
           )}
 
           {/* Chevron */}
@@ -254,7 +262,7 @@ export default function HistoryScreen() {
       <View key={group.date}>
         <Text style={[styles.dateHeader, { color: t.text.secondary }]}>{formatDate(group.date)}</Text>
         {group.reflections.map((r: any) =>
-          renderReflectionCard(r.question, r.response, r.createdAt, activeTab as "morning" | "night")
+          renderReflectionCard(r.question, r.response, r.createdAt)
         )}
       </View>
     ));

@@ -115,7 +115,7 @@ export async function scheduleNightGuide(guide: NightGuide): Promise<void> {
   await setupNightGuideNotificationChannel();
 
   const content: Notifications.NotificationContentInput = {
-    title: "Night Guide",
+    title: "Done for the day?",
     body: "Time for your bedtime routine",
     data: {
       nightGuideId: guide.id,
