@@ -209,6 +209,12 @@ Simple checklist to track what is done and what is pending.
 - [ ] iOS specific implementations
 
 ## Post-V4.0 Fixes (Session 2026-05-17)
+- [x] Fix Night Guide partial completion before scheduled time (Bug A)
+- [x] Fix History checklist showing all tasks strikethrough (Bug B)
+- [x] Add per-task tracking (completedTaskIds) for Night Guide occurrences
+- [x] Add completed_task_ids DB migration for night_guide_occurrences
+- [x] Update list screen for partial completion badge display
+
 - [x] Fix repeating alarms not rescheduling after completion
 
 - [x] Fix moon icon visibility (update `softSky` color tokens for both themes)

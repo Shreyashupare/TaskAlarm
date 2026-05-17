@@ -55,6 +55,8 @@ export const useNightGuideStore = create<NightGuideState & NightGuideActions>((s
       await nightGuideRepository.replaceTasksForNightGuide(guide.id, tasks);
       if (guide.enabled) {
         await nightGuideRepository.setNightGuideEnabled(guide.id, true);
+      // Clean up stale pending occurrences that no longer match selected weekdays
+      await nightGuideRepository.deleteStalePendingOccurrences(guide.id, guide.weekdays);
       }
       const guides = await nightGuideRepository.getAllNightGuides();
       set({ guides });
@@ -70,6 +72,8 @@ export const useNightGuideStore = create<NightGuideState & NightGuideActions>((s
       await nightGuideRepository.replaceTasksForNightGuide(guide.id, tasks);
       if (guide.enabled) {
         await nightGuideRepository.setNightGuideEnabled(guide.id, true);
+      // Clean up stale pending occurrences that no longer match selected weekdays
+      await nightGuideRepository.deleteStalePendingOccurrences(guide.id, guide.weekdays);
       }
       const guides = await nightGuideRepository.getAllNightGuides();
       set({ guides });

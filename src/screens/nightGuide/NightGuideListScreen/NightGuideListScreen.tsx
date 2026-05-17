@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useThemeTokens } from "../../../theme";
 import { useNightGuideStore } from "../../../stores/useNightGuideStore";
@@ -54,9 +54,22 @@ function getTodayStatus(
   );
 
   if (todayOcc) {
-    if (todayOcc.status === "completed") return { label: "Completed", status: "completed" };
+    if (todayOcc.status === "completed") {
+      const pct = todayOcc.completionPercentage;
+      const taskCount = todayOcc.completedTaskIds.length;
+      if (taskCount > 0 && taskCount < 100 && pct < 100) {
+        return { label: `${taskCount} tasks done`, status: "pending" };
+      }
+      return { label: "Completed", status: "completed" };
+    }
     if (todayOcc.status === "missed") return { label: "Missed", status: "missed" };
-    if (todayOcc.status === "pending") return { label: "Pending", status: "pending" };
+    if (todayOcc.status === "pending") {
+      const taskCount = todayOcc.completedTaskIds.length;
+      if (taskCount > 0) {
+        return { label: `${taskCount} task${taskCount > 1 ? "s" : ""} done`, status: "pending" };
+      }
+      return { label: "Pending", status: "pending" };
+    }
   }
 
   return { label: "Upcoming", status: "upcoming" };
@@ -161,9 +174,11 @@ export default function NightGuideListScreen() {
     setOccurrences(occs);
   }, [loadGuides]);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
   const todayGuide = useMemo(() => {
     const pendingOccs = occurrences.filter((o) => o.status === "pending");

@@ -78,8 +78,12 @@ export default function NightGuideHistoryScreen() {
     const completed = new Set(
       monthOccurrences.filter((o) => o.status === "completed").map((o) => o.scheduledDate)
     ).size;
-    const missed = total - completed;
-    return { total, completed, missed };
+    const pending = new Set(
+      monthOccurrences.filter((o) => o.status === "pending").map((o) => o.scheduledDate)
+    ).size;
+    const missed = total - completed - pending;
+    return { total, completed, missed, pending };
+    return { total, completed, missed, pending };
   }, [monthOccurrences]);
 
   const navigateMonth = (delta: number) => {
@@ -92,7 +96,7 @@ export default function NightGuideHistoryScreen() {
     });
   };
 
-  const getDayStatus = (dateKey: string): "completed" | "missed" | null => {
+  const getDayStatus = (dateKey: string): "completed" | "partial" | "missed" | null => {
     const occs = occurrencesByDate.get(dateKey);
     if (!occs) return null;
 
@@ -100,16 +104,28 @@ export default function NightGuideHistoryScreen() {
     const todayStr = getIstDateString();
     if (dateKey > todayStr) return null;
 
-    // Day is completed if any occurrence was completed
-    const hasCompleted = occs.some((o) => o.status === "completed");
-    if (hasCompleted) return "completed";
+    // Day is completed if any occurrence was completed (100% or all tasks done)
+    const hasFullCompleted = occs.some((o) => o.status === "completed");
+    if (hasFullCompleted) return "completed";
 
-    // Day is missed if any occurrence was missed (never opened)
+    // Day is partial if pending with some tasks done OR pending before grace deadline
+    const hasPartial = occs.some((o) => o.status === "pending" && o.completedTaskIds.length > 0);
+    if (hasPartial) return "partial";
+
+    // Day is still pending (0% done, today or past) - not missed yet if grace hasn't passed
+    const todayStrCheck = getIstDateString();
+    if (dateKey === todayStrCheck) return null; // today with no progress → upcoming
+
+    // Day is missed - after grace deadline with no progress
     const hasMissed = occs.some((o) => o.status === "missed");
     if (hasMissed) return "missed";
 
-    // Day is still pending (for today) - show warning
-    if (dateKey === todayStr) return null;
+    // Past date with pending but 0% and past grace → missed
+    const allPending = occs.filter((o) => o.status === "pending");
+    if (allPending.length > 0) {
+      const isPastGrace = allPending.every((o) => Date.now() >= o.graceDeadlineAt);
+      if (isPastGrace) return "missed";
+    }
 
     return null;
   };
@@ -135,6 +151,7 @@ export default function NightGuideHistoryScreen() {
 
     let bgColor = "transparent";
     if (dayStatus === "completed") bgColor = t.state.success;
+    else if (dayStatus === "partial") bgColor = t.state.warning;
     else if (dayStatus === "missed") bgColor = t.state.error;
 
     return (
@@ -207,6 +224,14 @@ export default function NightGuideHistoryScreen() {
                 </Text>
               </View>
               <View style={styles.stat}>
+                <Text style={[styles.statValue, { color: t.state.warning }]}>
+                  {stats.pending}
+                </Text>
+                <Text style={[styles.statLabel, { color: t.text.secondary }]}>
+                  Pending
+                </Text>
+              </View>
+              <View style={styles.stat}>
                 <Text style={[styles.statValue, { color: t.state.error }]}>
                   {stats.missed}
                 </Text>
@@ -223,6 +248,10 @@ export default function NightGuideHistoryScreen() {
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: t.state.success }]} />
             <Text style={[styles.legendLabel, { color: t.text.secondary }]}>Completed</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: t.state.warning }]} />
+            <Text style={[styles.legendLabel, { color: t.text.secondary }]}>In Progress</Text>
           </View>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: t.state.error }]} />

@@ -132,11 +132,13 @@ export async function replaceTasksForNightGuide(
 // ---- NightGuideOccurrence CRUD ----
 
 type OccurrenceRow = {
+
   id: string;
   night_guide_id: string;
   scheduled_date: string;
   status: string;
   completion_percentage: number;
+  completed_task_ids: string;
   grace_deadline_at: number;
   created_at: number;
   completed_at: number | null;
@@ -149,6 +151,7 @@ function rowToOccurrence(row: OccurrenceRow): NightGuideOccurrence {
     scheduledDate: row.scheduled_date,
     status: row.status as NightGuideOccurrence["status"],
     completionPercentage: row.completion_percentage,
+    completedTaskIds: JSON.parse(row.completed_task_ids),
     graceDeadlineAt: row.grace_deadline_at,
     createdAt: row.created_at,
     completedAt: row.completed_at ?? undefined,
@@ -192,13 +195,14 @@ export async function upsertOccurrence(occ: NightGuideOccurrence): Promise<void>
   const db = await openDatabase();
   await db.runAsync(
     `INSERT OR REPLACE INTO night_guide_occurrences
-     (id, night_guide_id, scheduled_date, status, completion_percentage, grace_deadline_at, created_at, completed_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+     (id, night_guide_id, scheduled_date, status, completion_percentage, completed_task_ids, grace_deadline_at, created_at, completed_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     occ.id,
     occ.nightGuideId,
     occ.scheduledDate,
     occ.status,
     occ.completionPercentage,
+    JSON.stringify(occ.completedTaskIds ?? []),
     occ.graceDeadlineAt,
     occ.createdAt,
     occ.completedAt ?? null
@@ -208,14 +212,15 @@ export async function upsertOccurrence(occ: NightGuideOccurrence): Promise<void>
 export async function updateOccurrenceStatus(
   id: string,
   status: NightGuideOccurrence["status"],
-  completionPercentage: number,
+  completionPercentage: number, completedTaskIds: string[],
   completedAt?: number
 ): Promise<void> {
   const db = await openDatabase();
   await db.runAsync(
-    `UPDATE night_guide_occurrences SET status = ?, completion_percentage = ?, completed_at = ? WHERE id = ?`,
+    `UPDATE night_guide_occurrences SET status = ?, completion_percentage = ?, completed_task_ids = ?, completed_at = ? WHERE id = ?`,
     status,
     completionPercentage,
+    JSON.stringify(completedTaskIds),
     completedAt ?? null,
     id
   );
@@ -259,6 +264,35 @@ type ReflectionRow = {
   created_at: number;
 };
 
+
+
+/**
+ * Delete pending occurrences for a guide that no longer match its selected weekdays.
+ * Only affects future-dated pending occurrences (past ones + completed/missed are kept).
+ */
+export async function deleteStalePendingOccurrences(
+  guideId: string,
+  activeWeekdays: number[]
+): Promise<void> {
+  const db = await openDatabase();
+  const todayStr = new Date().toISOString().split("T")[0];
+  // Get all pending occurrences for this guide
+  const rows = await db.getAllAsync<OccurrenceRow>(
+    "SELECT * FROM night_guide_occurrences WHERE night_guide_id = ? AND status = 'pending' AND scheduled_date > ?",
+    guideId,
+    todayStr
+  );
+  for (const row of rows) {
+    const [y, m, d] = row.scheduled_date.split("-").map(Number);
+    const date = new Date(y, m - 1, d);
+    const weekday = date.getDay();
+    // If this date's weekday is not in the active weekdays, delete it
+    if (!activeWeekdays.includes(weekday)) {
+      await db.runAsync("DELETE FROM night_guide_occurrences WHERE id = ?", row.id);
+      if (DEBUG) console.log(`Deleted stale pending occurrence ${row.id} for ${row.scheduled_date}`);
+    }
+  }
+}
 export async function saveNightReflection(reflection: NightReflection): Promise<void> {
   const db = await openDatabase();
   await db.runAsync(

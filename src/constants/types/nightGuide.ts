@@ -35,6 +35,7 @@ export type NightGuideOccurrence = {
   scheduledDate: string; // YYYY-MM-DD in IST
   status: "pending" | "completed" | "missed";
   completionPercentage: number; // 0 if none yet
+  completedTaskIds: string[]; // task IDs that were completed (for per-task tracking)
   graceDeadlineAt: number; // epoch ms = 09:00 IST next calendar day
   createdAt: number;
   completedAt?: number;
